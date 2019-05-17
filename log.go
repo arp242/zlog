@@ -4,6 +4,7 @@ package log // import "arp242.net/log"
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -209,7 +210,11 @@ func format(l Log) string {
 }
 
 func output(l Log) {
-	fmt.Println(Config.Format(l))
+	out := os.Stdout
+	if l.level == levelErr {
+		out = os.Stderr
+	}
+	fmt.Fprintln(out, Config.Format(l))
 }
 
 type stackTracer interface {
