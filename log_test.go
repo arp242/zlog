@@ -3,6 +3,7 @@ package log
 import (
 	"bytes"
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
@@ -16,18 +17,20 @@ func Test(t *testing.T) {
 
 	Config.StackFilter = errorutil.FilterPattern(errorutil.FilterTraceInclude, "testing")
 
+	reTrace := regexp.MustCompile(`\t/.*?/testing\.go:\d+\n`)
+
 	tests := []struct {
 		in   func()
 		want string
 	}{
 		{func() { Print("w00t") }, "w00t\n"},
 		{func() { Printf("w00t %s", "x") }, "w00t x\n"},
-		{func() { Error(errors.New("w00t")) }, "w00t\n\t\n\ttesting.tRunner\n\t\t/usr/lib/go/src/testing/testing.go:865\n\t"},
-		{func() { Errorf("w00t %s", "x") }, "w00t x\n\t\n\ttesting.tRunner\n\t\t/usr/lib/go/src/testing/testing.go:865\n\t"},
+		{func() { Error(errors.New("w00t")) }, "w00t\n\t\n\ttesting.tRunner\n\t\t/fake/testing.go:42\n\t"},
+		{func() { Errorf("w00t %s", "x") }, "w00t x\n\t\n\ttesting.tRunner\n\t\t/fake/testing.go:42\n\t"},
 
 		{func() { Module("test").Print("w00t") }, "test: w00t\n"},
 		{func() { Module("test").Module("second").Print("w00t") }, "test: second: w00t\n"},
-		{func() { Module("test").Error(errors.New("w00t")) }, "test: w00t\n\t\n\ttesting.tRunner\n\t\t/usr/lib/go/src/testing/testing.go:865\n\t"},
+		{func() { Module("test").Error(errors.New("w00t")) }, "test: w00t\n\t\n\ttesting.tRunner\n\t\t/fake/testing.go:42\n\t"},
 
 		{func() { Module("test").Fields(F{"k": "v"}).Print("w00t") }, "test: w00t k=v\n"},
 		{func() { Module("test").Fields(F{"k": 3}).Print("w00t") }, "test: w00t k=3\n"},
@@ -38,7 +41,7 @@ func Test(t *testing.T) {
 
 		{func() { Module("test").Trace("w00t") }, ""},
 		{func() { Debug("test").Module("test").Trace("w00t") }, "test: w00t\n"},
-		{func() { Module("test").Trace("w00t").Errorf("oh noes") }, "test: w00t\n" + n.Format(Config.FmtTime) + "test: oh noes\n\t\n\ttesting.tRunner\n\t\t/usr/lib/go/src/testing/testing.go:865\n\t"},
+		{func() { Module("test").Trace("w00t").Errorf("oh noes") }, "test: w00t\n" + n.Format(Config.FmtTime) + "test: oh noes\n\t\n\ttesting.tRunner\n\t\t/fake/testing.go:42\n\t"},
 		{func() { Module("test").Trace("w00t").Print("print") }, "test: print\n"},
 	}
 
@@ -49,6 +52,8 @@ func Test(t *testing.T) {
 
 			tt.in()
 			out := buf.String()
+			out = reTrace.ReplaceAllString(out, "\t/fake/testing.go:42\n")
+
 			if tt.want != "" {
 				tt.want = n.Format(Config.FmtTime) + tt.want
 			}
