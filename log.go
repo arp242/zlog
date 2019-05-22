@@ -37,6 +37,9 @@ type ConfigT struct {
 	// with a stack trace.
 	// Useful to filter out HTTP middleware and other useless stuff.
 	StackFilter *errorutil.Patterns
+
+	// Global debug modules; always print debug information for these.
+	Debug []string
 }
 
 // Config for this package.
@@ -155,9 +158,17 @@ func (l Log) Tracef(f string, v ...interface{}) Log {
 	return l
 }
 
+// TODO: we could store as map[string]struct{} internally so it's a bit faster.
+// Not sure if that's actually worth it?
 func (l Log) hasDebug() bool {
-	for _, d := range l.debug {
-		for _, m := range l.modules {
+	for _, m := range l.modules {
+		for _, d := range Config.Debug {
+			if d == m {
+				return true
+			}
+		}
+
+		for _, d := range l.debug {
 			if d == m {
 				return true
 			}

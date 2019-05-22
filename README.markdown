@@ -3,9 +3,16 @@
 [![codecov](https://codecov.io/gh/zgoat/log/branch/master/graph/badge.svg)](https://codecov.io/gh/zgoat/log)
 [![GoDoc](https://godoc.org/github.com/zgoat/log?status.svg)](https://godoc.org/github.com/zgoat/log)
 
-Go logging library.
+Go logging library. Canonical import path: `zgo.at/log`.
 
-Canonical package path: `zgo.at/log`.
+The main goal is to offer a friendly API which gets out of your way.
+
+Getting the maximum possible amount of performance or zero-allocations are not a
+goal, although simple benchmarks show it should be Fast Enough™ for most
+purposes (if not, there are a few max-performance libraries already).
+
+Usage
+-----
 
 Basics:
 
@@ -56,11 +63,3 @@ initialisation of your app).
 
 It's not possible to configure individual logger instances. It's not often
 needed, and adds some complexity.
-
-Goals
------
-
-- User-friendly API and UX.
-- Stack trace on error.
-- Easy to add debug information.
-- Send print and error output to where-ever.
