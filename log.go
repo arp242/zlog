@@ -1,5 +1,5 @@
-// Package log is a logging library.
-package log // import "zgo.at/log"
+// Package zlog is a logging library.
+package zlog // import "zgo.at/zlog"
 
 import (
 	"context"

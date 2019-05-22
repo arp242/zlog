@@ -1,4 +1,4 @@
-module zgo.at/log
+module zgo.at/zlog
 
 go 1.12
 
