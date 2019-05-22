@@ -31,13 +31,12 @@ l.Print("foo")                    // 15:56:55 test: foo key="val"
 Debug logs are printed only for modules marked as debug:
 
 ```go
-log.Debug("bar")                  // Print debug logs only for module "bar".
-log.Module("foo").Debug("w00t")   // Prints nothing.
+log.Module("bar").Debug("w00t")   // Prints nothing (didn't enable module "bar").
+log.Debug("bar")                  // Enable debug logs only for module "bar".
 log.Module("bar").Debug("w00t")   // 15:56:55 w00t
 ```
 
-Trace logs are kind of like debug logs, but are also printed when there is an
-error.
+Trace logs are like debug logs, but are also printed when there is an error.
 
 ```go
 l := log.Module("foo")

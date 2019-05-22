@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -38,11 +39,13 @@ func Test(t *testing.T) {
 		{func() { Module("test").Debug("w00t") }, ""},
 		{func() { Debug("xxx").Module("test").Debug("w00t") }, ""},
 		{func() { Debug("test").Module("test").Debug("w00t") }, "test: w00t\n"},
+		{func() { Debug("test").Module("test").Debugf("w00t %d", 42) }, "test: w00t 42\n"},
 
 		{func() { Module("test").Trace("w00t") }, ""},
 		{func() { Debug("test").Module("test").Trace("w00t") }, "test: w00t\n"},
-		{func() { Module("test").Trace("w00t").Errorf("oh noes") }, "test: w00t\n" + n.Format(Config.FmtTime) + "test: oh noes\n\t\n\ttesting.tRunner\n\t\t/fake/testing.go:42\n\t"},
+		{func() { Module("test").Tracef("w00t %d", 42).Errorf("oh noes") }, "test: w00t 42\n" + n.Format(Config.FmtTime) + "test: oh noes\n\t\n\ttesting.tRunner\n\t\t/fake/testing.go:42\n\t"},
 		{func() { Module("test").Trace("w00t").Print("print") }, "test: print\n"},
+		{func() { Module("test").Tracef("w00t").Print("print") }, "test: print\n"},
 	}
 
 	for i, tt := range tests {
@@ -61,5 +64,23 @@ func Test(t *testing.T) {
 				t.Errorf("\nout:  %q\nwant: %q\n", out, tt.want)
 			}
 		})
+	}
+}
+
+func BenchmarkPrint(b *testing.B) {
+	text := strings.Repeat("Hello, world, it's a sentences!\n", 4)
+	for n := 0; n < b.N; n++ {
+		Print(text)
+	}
+}
+
+func BenchmarkFields(b *testing.B) {
+	l := Module("bench").Fields(F{
+		"a": "b",
+		"c": "d",
+	})
+	text := strings.Repeat("Hello, world, it's a sentences!\n", 4)
+	for n := 0; n < b.N; n++ {
+		l.Print(text)
 	}
 }

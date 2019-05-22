@@ -4,8 +4,6 @@ package log // import "zgo.at/log"
 import (
 	"context"
 	"fmt"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -18,6 +16,8 @@ type ConfigT struct {
 	//
 	// The default is to just print the time, which works well in development.
 	// For production you probably want to use time.RFC3339 or some such.
+	//
+	// This is used in the standard format() function, not not elsewhere.
 	FmtTime string
 
 	// Format function; this takes a Log entry and formats it for output.
@@ -27,15 +27,15 @@ type ConfigT struct {
 	Format func(Log) string
 
 	// Output a Log entry; this is expected to call Format() and then do
-	// *something* with it.
+	// *something* with the result.
 	//
 	// The default is to print to stderr for errors, and stdout for everything
-	// else. It can also
+	// else.
 	Output func(Log)
 
 	// Filter stack traces, only used if the error is a github.com/pkg/errors
 	// with a stack trace.
-	// Useful to filter out HTTP middlewares and other useless stuff.
+	// Useful to filter out HTTP middleware and other useless stuff.
 	StackFilter *errorutil.Patterns
 }
 
@@ -60,6 +60,7 @@ const (
 var now = func() time.Time { return time.Now() }
 
 type (
+	// Log module.
 	Log struct {
 		msg     string   // Log message.
 		err     error    // Original error, in case of errors.
@@ -71,6 +72,7 @@ type (
 		ctx     context.Context
 	}
 
+	// F are log fields.
 	F map[string]interface{}
 )
 
@@ -162,59 +164,6 @@ func (l Log) hasDebug() bool {
 		}
 	}
 	return false
-}
-
-func format(l Log) string {
-	b := &strings.Builder{}
-
-	// Write any existing trace logs on error.
-	if l.level == levelErr {
-		for _, t := range l.traces {
-			b.Write([]byte(t))
-		}
-	}
-
-	b.WriteString(now().Format(Config.FmtTime))
-	if len(l.modules) > 0 {
-		b.WriteString(strings.Join(l.modules, ": "))
-		b.WriteString(": ")
-	}
-	b.WriteString(l.msg)
-
-	if len(l.fields) > 0 {
-		b.WriteString(" ")
-		for k, v := range l.fields {
-			fmt.Fprintf(b, "%s=%v", k, v)
-		}
-	}
-
-	b.WriteString("\n")
-
-	// TODO: also support new error interface in Go 1.13
-	if l.level == levelErr {
-		if l.err == nil {
-			l.err = errors.WithStack(errors.New(""))
-		} else if _, ok := l.err.(stackTracer); !ok {
-			l.err = errors.WithStack(l.err)
-		}
-
-		if Config.StackFilter != nil {
-			l.err = errorutil.FilterTrace(l.err, Config.StackFilter)
-		}
-
-		st := l.err.(stackTracer)
-		b.WriteString(strings.Replace(fmt.Sprintf("\t%+v\n", st.StackTrace()), "\n", "\n\t", -1))
-	}
-
-	return b.String()
-}
-
-func output(l Log) {
-	out := os.Stdout
-	if l.level == levelErr {
-		out = os.Stderr
-	}
-	fmt.Fprintln(out, Config.Format(l))
 }
 
 type stackTracer interface {
