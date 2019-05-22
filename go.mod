@@ -1,4 +1,4 @@
-module arp242.net/log
+module zgo.at/log
 
 go 1.12
 

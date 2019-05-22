@@ -1,11 +1,11 @@
-[![This project is considered experimental](https://img.shields.io/badge/Status-experimental-red.svg)](https://arp242.net/status/experimental)
-[![Build Status](https://travis-ci.org/Carpetsmoker/log.svg?branch=master)](https://travis-ci.org/Carpetsmoker/log)
-[![GoDoc](https://godoc.org/github.com/Carpetsmoker/log?status.svg)](https://godoc.org/github.com/Carpetsmoker/log)
+[![This project is considered experimental](https://img.shields.io/badge/Status-experimental-red.svg)](https://zgo.at/status/experimental)
+[![Build Status](https://travis-ci.org/zgoat/log.svg?branch=master)](https://travis-ci.org/zgoat/log)
+[![codecov](https://codecov.io/gh/zgoat/log/branch/master/graph/badge.svg)](https://codecov.io/gh/zgoat/log)
+[![GoDoc](https://godoc.org/github.com/zgoat/log?status.svg)](https://godoc.org/github.com/zgoat/log)
 
-Martin's logging library.
+Go logging library.
 
-Canonical package path: `arp242.net/log`.
-
+Canonical package path: `zgo.at/log`.
 
 Basics:
 
@@ -57,3 +57,11 @@ initialisation of your app).
 
 It's not possible to configure individual logger instances. It's not often
 needed, and adds some complexity.
+
+Goals
+-----
+
+- User-friendly API and UX.
+- Stack trace on error.
+- Easy to add debug information.
+- Send print and error output to where-ever.

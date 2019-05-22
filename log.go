@@ -1,5 +1,5 @@
 // Package log is a logging library.
-package log // import "arp242.net/log"
+package log // import "zgo.at/log"
 
 import (
 	"context"
