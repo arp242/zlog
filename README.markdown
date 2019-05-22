@@ -1,4 +1,4 @@
-[![This project is considered experimental](https://img.shields.io/badge/Status-experimental-red.svg)](https://zgo.at/status/experimental)
+[![This project is considered experimental](https://img.shields.io/badge/Status-experimental-red.svg)](https://arp242.net/status/experimental)
 [![Build Status](https://travis-ci.org/zgoat/zlog.svg?branch=master)](https://travis-ci.org/zgoat/zlog)
 [![codecov](https://codecov.io/gh/zgoat/zlog/branch/master/graph/badge.svg)](https://codecov.io/gh/zgoat/zlog)
 [![GoDoc](https://godoc.org/github.com/zgoat/zlog?status.svg)](https://godoc.org/github.com/zgoat/zlog)
