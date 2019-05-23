@@ -109,12 +109,12 @@ func (l Log) Printf(f string, v ...interface{}) {
 	Config.Output(l)
 }
 func (l Log) Error(err error) {
-	l.Msg = fmt.Sprintf("%s", err)
+	l.Err = err
 	l.Level = levelErr
 	Config.Output(l)
 }
 func (l Log) Errorf(f string, v ...interface{}) {
-	l.Msg = fmt.Sprintf(f, v...)
+	l.Err = fmt.Errorf(f, v...)
 	l.Level = levelErr
 	Config.Output(l)
 }

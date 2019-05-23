@@ -24,7 +24,11 @@ func format(l Log) string {
 		b.WriteString(strings.Join(l.Modules, ": "))
 		b.WriteString(": ")
 	}
-	b.WriteString(l.Msg)
+	if l.Err != nil {
+		b.WriteString(l.Err.Error())
+	} else {
+		b.WriteString(l.Msg)
+	}
 
 	if len(l.Data) > 0 {
 		b.WriteString(" ")
