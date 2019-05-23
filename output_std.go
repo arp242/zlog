@@ -13,22 +13,22 @@ func format(l Log) string {
 	b := &strings.Builder{}
 
 	// Write any existing trace logs on error.
-	if l.level == levelErr {
-		for _, t := range l.traces {
+	if l.Level == levelErr {
+		for _, t := range l.Traces {
 			b.Write([]byte(t))
 		}
 	}
 
 	b.WriteString(now().Format(Config.FmtTime))
-	if len(l.modules) > 0 {
-		b.WriteString(strings.Join(l.modules, ": "))
+	if len(l.Modules) > 0 {
+		b.WriteString(strings.Join(l.Modules, ": "))
 		b.WriteString(": ")
 	}
-	b.WriteString(l.msg)
+	b.WriteString(l.Msg)
 
-	if len(l.fields) > 0 {
+	if len(l.Data) > 0 {
 		b.WriteString(" ")
-		for k, v := range l.fields {
+		for k, v := range l.Data {
 			fmt.Fprintf(b, "%s=%v", k, v)
 		}
 	}
@@ -36,18 +36,18 @@ func format(l Log) string {
 	b.WriteString("\n")
 
 	// TODO: also support new error interface in Go 1.13
-	if l.level == levelErr {
-		if l.err == nil {
-			l.err = errors.WithStack(errors.New(""))
-		} else if _, ok := l.err.(stackTracer); !ok {
-			l.err = errors.WithStack(l.err)
+	if l.Level == levelErr {
+		if l.Err == nil {
+			l.Err = errors.WithStack(errors.New(""))
+		} else if _, ok := l.Err.(stackTracer); !ok {
+			l.Err = errors.WithStack(l.Err)
 		}
 
 		if Config.StackFilter != nil {
-			l.err = errorutil.FilterTrace(l.err, Config.StackFilter)
+			l.Err = errorutil.FilterTrace(l.Err, Config.StackFilter)
 		}
 
-		st := l.err.(stackTracer)
+		st := l.Err.(stackTracer)
 		b.WriteString(strings.Replace(fmt.Sprintf("\t%+v\n", st.StackTrace()), "\n", "\n\t", -1))
 	}
 
@@ -56,7 +56,7 @@ func format(l Log) string {
 
 func output(l Log) {
 	out := os.Stdout
-	if l.level == levelErr {
+	if l.Level == levelErr {
 		out = os.Stderr
 	}
 	fmt.Fprintln(out, Config.Format(l))
