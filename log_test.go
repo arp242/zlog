@@ -15,37 +15,38 @@ import (
 func Test(t *testing.T) {
 	n := time.Now()
 	now = func() time.Time { return n }
+	enableColors = false
 
 	Config.StackFilter = errorutil.FilterPattern(errorutil.FilterTraceInclude, "testing")
 
-	reTrace := regexp.MustCompile(`\t/.*?/testing\.go:\d+\n`)
+	reTrace := regexp.MustCompile(`\t/.*?/testing\.go:\d+`)
 
 	tests := []struct {
 		in   func()
 		want string
 	}{
-		{func() { Print("w00t") }, "w00t\n"},
-		{func() { Printf("w00t %s", "x") }, "w00t x\n"},
-		{func() { Error(errors.New("w00t")) }, "w00t\n\t\n\ttesting.tRunner\n\t\t/fake/testing.go:42\n\t"},
-		{func() { Errorf("w00t %s", "x") }, "w00t x\n\t\n\ttesting.tRunner\n\t\t/fake/testing.go:42\n\t"},
+		{func() { Print("w00t") }, "INFO: w00t"},
+		{func() { Printf("w00t %s", "x") }, "INFO: w00t x"},
+		{func() { Error(errors.New("w00t")) }, "ERROR: w00t\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
+		{func() { Errorf("w00t %s", "x") }, "ERROR: w00t x\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
 
-		{func() { Module("test").Print("w00t") }, "test: w00t\n"},
-		{func() { Module("test").Module("second").Print("w00t") }, "test: second: w00t\n"},
-		{func() { Module("test").Error(errors.New("w00t")) }, "test: w00t\n\t\n\ttesting.tRunner\n\t\t/fake/testing.go:42\n\t"},
+		{func() { Module("test").Print("w00t") }, "test: INFO: w00t"},
+		{func() { Module("test").Module("second").Print("w00t") }, "test: second: INFO: w00t"},
+		{func() { Module("test").Error(errors.New("w00t")) }, "test: ERROR: w00t\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
 
-		{func() { Module("test").Fields(F{"k": "v"}).Print("w00t") }, "test: w00t k=v\n"},
-		{func() { Module("test").Fields(F{"k": 3}).Print("w00t") }, "test: w00t k=3\n"},
+		{func() { Module("test").Fields(F{"k": "v"}).Print("w00t") }, "test: INFO: w00t k=v"},
+		{func() { Module("test").Fields(F{"k": 3}).Print("w00t") }, "test: INFO: w00t k=3"},
 
 		{func() { Module("test").Debug("w00t") }, ""},
 		{func() { Debug("xxx").Module("test").Debug("w00t") }, ""},
-		{func() { Debug("test").Module("test").Debug("w00t") }, "test: w00t\n"},
-		{func() { Debug("test").Module("test").Debugf("w00t %d", 42) }, "test: w00t 42\n"},
+		{func() { Debug("test").Module("test").Debug("w00t") }, "test: DEBUG: w00t"},
+		{func() { Debug("test").Module("test").Debugf("w00t %d", 42) }, "test: DEBUG: w00t 42"},
 
 		{func() { Module("test").Trace("w00t") }, ""},
-		{func() { Debug("test").Module("test").Trace("w00t") }, "test: w00t\n"},
-		{func() { Module("test").Tracef("w00t %d", 42).Errorf("oh noes") }, "test: w00t 42\n" + n.Format(Config.FmtTime) + "test: oh noes\n\t\n\ttesting.tRunner\n\t\t/fake/testing.go:42\n\t"},
-		{func() { Module("test").Trace("w00t").Print("print") }, "test: print\n"},
-		{func() { Module("test").Tracef("w00t").Print("print") }, "test: print\n"},
+		{func() { Debug("test").Module("test").Trace("w00t") }, "test: TRACE: w00t"},
+		{func() { Module("test").Tracef("w00t %d", 42).Errorf("oh noes") }, "test: TRACE: w00t 42\n" + n.Format(Config.FmtTime) + "test: ERROR: oh noes\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
+		{func() { Module("test").Trace("w00t").Print("print") }, "test: INFO: print"},
+		{func() { Module("test").Tracef("w00t").Print("print") }, "test: INFO: print"},
 	}
 
 	for i, tt := range tests {
@@ -55,7 +56,7 @@ func Test(t *testing.T) {
 
 			tt.in()
 			out := buf.String()
-			out = reTrace.ReplaceAllString(out, "\t/fake/testing.go:42\n")
+			out = reTrace.ReplaceAllString(out, "\t/fake/testing.go:42")
 
 			if tt.want != "" {
 				tt.want = n.Format(Config.FmtTime) + tt.want

@@ -53,14 +53,15 @@ func init() {
 	}
 }
 
+// Debug levels.
 const (
-	//levelPrint = 0
-	levelErr   = 1
-	levelDbg   = 2
-	levelTrace = 3
+	LevelInfo  = 0
+	LevelErr   = 1
+	LevelDbg   = 2
+	LevelTrace = 3
 )
 
-var now = func() time.Time { return time.Now() }
+var now = time.Now
 
 type (
 	// Log module.
@@ -102,20 +103,25 @@ func (l Log) Fields(f F) Log {
 
 func (l Log) Print(v ...interface{}) {
 	l.Msg = fmt.Sprint(v...)
+	l.Level = LevelInfo
 	Config.Output(l)
 }
+
 func (l Log) Printf(f string, v ...interface{}) {
 	l.Msg = fmt.Sprintf(f, v...)
+	l.Level = LevelInfo
 	Config.Output(l)
 }
+
 func (l Log) Error(err error) {
 	l.Err = err
-	l.Level = levelErr
+	l.Level = LevelErr
 	Config.Output(l)
 }
+
 func (l Log) Errorf(f string, v ...interface{}) {
 	l.Err = fmt.Errorf(f, v...)
-	l.Level = levelErr
+	l.Level = LevelErr
 	Config.Output(l)
 }
 
@@ -123,22 +129,25 @@ func (l Log) Debug(v ...interface{}) {
 	if !l.hasDebug() {
 		return
 	}
-	l.Level = levelDbg
-	l.Print(v...)
+	l.Msg = fmt.Sprint(v...)
+	l.Level = LevelDbg
+	Config.Output(l)
 }
+
 func (l Log) Debugf(f string, v ...interface{}) {
 	if !l.hasDebug() {
 		return
 	}
-	l.Level = levelDbg
-	l.Printf(f, v...)
+	l.Msg = fmt.Sprintf(f, v...)
+	l.Level = LevelDbg
+	Config.Output(l)
 }
 
 func (l Log) Trace(v ...interface{}) Log {
 	l.Msg = fmt.Sprint(v...)
-	l.Level = levelTrace
+	l.Level = LevelTrace
 	if l.hasDebug() {
-		l.Print(v...)
+		Config.Output(l)
 		return l
 	}
 
@@ -148,9 +157,9 @@ func (l Log) Trace(v ...interface{}) Log {
 
 func (l Log) Tracef(f string, v ...interface{}) Log {
 	l.Msg = fmt.Sprintf(f, v...)
-	l.Level = levelTrace
+	l.Level = LevelTrace
 	if l.hasDebug() {
-		l.Printf(f, v...)
+		Config.Output(l)
 		return l
 	}
 
