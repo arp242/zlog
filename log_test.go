@@ -3,6 +3,7 @@ package zlog
 import (
 	"bytes"
 	"fmt"
+	"net/http"
 	"regexp"
 	"strings"
 	"testing"
@@ -34,8 +35,8 @@ func Test(t *testing.T) {
 		{func() { Module("test").Module("second").Print("w00t") }, "test: second: INFO: w00t"},
 		{func() { Module("test").Error(errors.New("w00t")) }, "test: ERROR: w00t\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
 
-		{func() { Module("test").Fields(F{"k": "v"}).Print("w00t") }, "test: INFO: w00t k=v"},
-		{func() { Module("test").Fields(F{"k": 3}).Print("w00t") }, "test: INFO: w00t k=3"},
+		{func() { Module("test").Fields(F{"k": "v"}).Print("w00t") }, "test: INFO: w00t\n\t{k=\"v\"}"},
+		{func() { Module("test").Fields(F{"k": 3}).Print("w00t") }, "test: INFO: w00t\n\t{k='\\x03'}"},
 
 		{func() { Module("test").Debug("w00t") }, ""},
 		{func() { Debug("xxx").Module("test").Debug("w00t") }, ""},
@@ -47,6 +48,16 @@ func Test(t *testing.T) {
 		{func() { Module("test").Tracef("w00t %d", 42).Errorf("oh noes") }, "test: TRACE: w00t 42\n" + n.Format(Config.FmtTime) + "test: ERROR: oh noes\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
 		{func() { Module("test").Trace("w00t").Print("print") }, "test: INFO: print"},
 		{func() { Module("test").Tracef("w00t").Print("print") }, "test: INFO: print"},
+
+		{func() {
+			r, _ := http.NewRequest("PUT", "/path?k=v&a=b", nil)
+			//Request(r).Error(errors.New("w00t"))
+			Request(r).Print("w00t")
+		}, "INFO: w00t\n\t{http_method=\"PUT\" http_url=\"/path?k=v&a=b\" http_form=\"\"}"},
+		{func() {
+			r, _ := http.NewRequest("PUT", "/path?k=v&a=b", nil)
+			Request(r).Error(errors.New("w00t"))
+		}, "ERROR: w00t\n\t{http_method=\"PUT\" http_url=\"/path?k=v&a=b\" http_form=\"\"}\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
 	}
 
 	for i, tt := range tests {

@@ -4,6 +4,7 @@ package zlog // import "zgo.at/zlog"
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/pkg/errors"
@@ -165,6 +166,28 @@ func (l Log) Tracef(f string, v ...interface{}) Log {
 
 	l.Traces = append(l.Traces, Config.Format(l))
 	return l
+}
+
+// Request adds information from a HTTP request as fields.
+func Request(r *http.Request) Log {
+	if r == nil {
+		panic("zlog.Request: *http.Request is nil")
+	}
+
+	return Log{}.Request(r)
+}
+
+// Request adds information from a HTTP request as fields.
+func (l Log) Request(r *http.Request) Log {
+	if r == nil {
+		panic("zlog.Request: *http.Request is nil")
+	}
+
+	return l.Fields(F{
+		"http_method": r.Method,
+		"http_url":    r.URL.String(),
+		"http_form":   r.Form.Encode(),
+	})
 }
 
 // TODO: we could store as map[string]struct{} internally so it's a bit faster.

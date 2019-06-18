@@ -58,10 +58,17 @@ func format(l Log) string {
 	}
 
 	if len(l.Data) > 0 {
-		b.WriteString(" ")
+		b.WriteString("\n\t{")
+		first := true
 		for k, v := range l.Data {
-			fmt.Fprintf(b, "%s=%v", k, v)
+			if !first {
+				b.WriteString(" ")
+			} else {
+				first = false
+			}
+			fmt.Fprintf(b, "%s=%q", k, v)
 		}
+		b.WriteString("}")
 	}
 
 	// TODO: also support new error interface in Go 1.13
