@@ -238,3 +238,46 @@ func (l Log) Since(msg string) Log {
 	l.since = n
 	return l
 }
+
+// Recover from a panic.
+//
+//   go func() {
+//       defer zlog.Recover()
+//       // ... do work...
+//   }()
+//
+// Any panics will be recover()'d and reported with Error().
+//
+// The first callback will be called *before* the Error() call, and can be used
+// to modify the Log instance, for example to add fields:
+//
+//   defer zlog.Recover(func(l Log) Log {
+//       return l.Fields(zlog.F{"id": id})
+//   })
+//
+// Any other callbacks will be called *after* the Error() call. Modifying the
+// Log instance has no real use.
+func Recover(cb ...func(Log) Log) {
+	r := recover()
+	if r == nil {
+		return
+	}
+
+	err, ok := r.(error)
+	if !ok {
+		err = fmt.Errorf("%v", r)
+	}
+
+	l := Module("panic")
+	if len(cb) > 0 {
+		l = cb[0](l)
+	}
+
+	l.Error(err)
+
+	if len(cb) > 1 {
+		for i := range cb[1:] {
+			l = cb[i](l)
+		}
+	}
+}

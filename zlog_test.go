@@ -14,7 +14,7 @@ import (
 	"github.com/teamwork/utils/errorutil"
 )
 
-func Test(t *testing.T) {
+func TestLog(t *testing.T) {
 	n := time.Now()
 	now = func() time.Time { return n }
 	enableColors = false
@@ -118,7 +118,29 @@ func TestSince(t *testing.T) {
 			}
 		})
 	}
+}
 
+// TODO: expand test (i.e. test that it works beyond running).
+func TestRecover(t *testing.T) {
+	go func() {
+		defer Recover()
+	}()
+
+	go func() {
+		defer Recover()
+		panic("oh noes")
+	}()
+
+	go func() {
+		defer Recover(func(l Log) Log {
+			return l.Fields(F{"a": "b"})
+		},
+			func(l Log) Log {
+				fmt.Println("after")
+				return l
+			})
+		panic("oh noes")
+	}()
 }
 
 func BenchmarkPrint(b *testing.B) {
