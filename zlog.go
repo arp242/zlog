@@ -4,10 +4,12 @@ package zlog // import "zgo.at/zlog"
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/teamwork/utils/errorutil"
 )
 
@@ -75,13 +77,15 @@ type (
 		Data         F        // Fields added to the logger.
 		DebugModules []string // List of modules to debug.
 		Traces       []string // Traces added to the logger.
+
+		since time.Time
 	}
 
 	// F are log fields.
 	F map[string]interface{}
 )
 
-func Module(m string) Log   { return Log{Modules: []string{m}} }
+func Module(m string) Log   { return Log{Modules: []string{m}, since: time.Now()} }
 func Fields(f F) Log        { return Log{Data: f} }
 func Debug(m ...string) Log { return Log{DebugModules: m} }
 
@@ -95,8 +99,10 @@ func (l Log) Context(ctx context.Context) { l.Ctx = ctx }
 
 func (l Log) Module(m string) Log {
 	l.Modules = append(l.Modules, m)
+	l.since = time.Now()
 	return l
 }
+
 func (l Log) Fields(f F) Log {
 	l.Data = f
 	return l
@@ -209,6 +215,26 @@ func (l Log) hasDebug() bool {
 	return false
 }
 
-type stackTracer interface {
-	StackTrace() errors.StackTrace
+var stderr io.Writer = os.Stderr
+
+// Since prints the duration since the last Since() or Module() call with the
+// given message.
+//
+// It's mainly intended for quick printf-style performance debugging and will
+// only work in debug mode. It will always output to stderr.
+func (l Log) Since(msg string) Log {
+	if !l.hasDebug() {
+		return l
+	}
+
+	n := time.Now()
+	if l.since.IsZero() {
+		l.since = n
+	}
+
+	fmt.Fprintf(stderr, "  %s %5dms  %s\n",
+		strings.Join(l.Modules, ":"),
+		time.Since(l.since).Nanoseconds()/1000000, msg)
+	l.since = n
+	return l
 }

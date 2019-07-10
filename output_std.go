@@ -29,6 +29,10 @@ var (
 	}
 )
 
+type stackTracer interface {
+	StackTrace() errors.StackTrace
+}
+
 func format(l Log) string {
 	b := &strings.Builder{}
 

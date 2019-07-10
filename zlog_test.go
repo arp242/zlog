@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -49,6 +50,7 @@ func Test(t *testing.T) {
 		{func() { Module("test").Trace("w00t").Print("print") }, "test: INFO: print"},
 		{func() { Module("test").Tracef("w00t").Print("print") }, "test: INFO: print"},
 
+		// TODO: fails sometimes as field order is inconsistent.
 		{func() {
 			r, _ := http.NewRequest("PUT", "/path?k=v&a=b", nil)
 			//Request(r).Error(errors.New("w00t"))
@@ -77,6 +79,46 @@ func Test(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSince(t *testing.T) {
+	tests := []struct {
+		in   func()
+		want string
+	}{
+		{func() { Module("test").Since("xxx") }, ""},
+		{func() { Debug("test").Module("test").Since("xxx") }, "  test     0ms  xxx\n"},
+		{func() {
+			l := Debug("test").Module("test").Since("xxx")
+			time.Sleep(2 * time.Millisecond)
+			l.Since("yyy")
+			time.Sleep(4 * time.Millisecond)
+			l.Since("zzz")
+		}, "  test     0ms  xxx\n  test     2ms  yyy\n  test     6ms  zzz\n"},
+		{func() {
+			l := Debug("test").Module("test").Since("xxx")
+			time.Sleep(2 * time.Millisecond)
+			l = l.Since("yyy")
+			time.Sleep(4 * time.Millisecond)
+			l.Since("zzz")
+		}, "  test     0ms  xxx\n  test     2ms  yyy\n  test     4ms  zzz\n"},
+	}
+
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
+			var buf bytes.Buffer
+			stderr = &buf
+			defer func() { stderr = os.Stderr }()
+
+			tt.in()
+			out := buf.String()
+
+			if out != tt.want {
+				t.Errorf("\nout:  %q\nwant: %q\n", out, tt.want)
+			}
+		})
+	}
+
 }
 
 func BenchmarkPrint(b *testing.B) {
