@@ -23,18 +23,32 @@ type ConfigT struct {
 	// This is used in the standard format() function, not not elsewhere.
 	FmtTime string
 
-	// Format function; this takes a Log entry and formats it for output.
-	//
-	// This can also return JSON or something else, whatever makes sense for
-	// your Output function.
+	// Format function used by the default stdout/stderr output. This takes a
+	// Log entry and formats it for output.
 	Format func(Log) string
 
-	// Output a Log entry; this is expected to call Format() and then do
-	// *something* with the result.
+	// Outputs for a Log entry.
 	//
 	// The default is to print to stderr for errors, and stdout for everything
-	// else.
-	Output func(Log)
+	// else. Generally you want to keep this as a backup and add other
+	// additional outputs, for example:
+	//
+	//    zlog.Config.Outputs = append(zlog.Config.Outputs, func(l Log) {
+	//        if l.Level != LevelErr { // Only process errors.
+	//            return
+	//        }
+	//
+	//        // .. send to external error notification service ..
+	//    })
+	//
+	//    zlog.Config.Outputs = append(zlog.Config.Outputs, func(l Log) {
+	//        if l.Level == LevelErr { // Only process non-errors.
+	//            return
+	//        }
+	//
+	//        // .. send to external logging service ..
+	//    })
+	Outputs []func(Log)
 
 	// Filter stack traces, only used if the error is a github.com/pkg/errors
 	// with a stack trace.
@@ -45,6 +59,12 @@ type ConfigT struct {
 	Debug []string
 }
 
+func (c ConfigT) RunOutputs(l Log) {
+	for _, o := range c.Outputs {
+		o(l)
+	}
+}
+
 // Config for this package.
 var Config ConfigT
 
@@ -52,7 +72,7 @@ func init() {
 	Config = ConfigT{
 		FmtTime: "15:04:05 ",
 		Format:  format,
-		Output:  output,
+		Outputs: []func(Log){output},
 	}
 }
 
@@ -111,25 +131,25 @@ func (l Log) Fields(f F) Log {
 func (l Log) Print(v ...interface{}) {
 	l.Msg = fmt.Sprint(v...)
 	l.Level = LevelInfo
-	Config.Output(l)
+	Config.RunOutputs(l)
 }
 
 func (l Log) Printf(f string, v ...interface{}) {
 	l.Msg = fmt.Sprintf(f, v...)
 	l.Level = LevelInfo
-	Config.Output(l)
+	Config.RunOutputs(l)
 }
 
 func (l Log) Error(err error) {
 	l.Err = err
 	l.Level = LevelErr
-	Config.Output(l)
+	Config.RunOutputs(l)
 }
 
 func (l Log) Errorf(f string, v ...interface{}) {
 	l.Err = fmt.Errorf(f, v...)
 	l.Level = LevelErr
-	Config.Output(l)
+	Config.RunOutputs(l)
 }
 
 func (l Log) Debug(v ...interface{}) {
@@ -138,7 +158,7 @@ func (l Log) Debug(v ...interface{}) {
 	}
 	l.Msg = fmt.Sprint(v...)
 	l.Level = LevelDbg
-	Config.Output(l)
+	Config.RunOutputs(l)
 }
 
 func (l Log) Debugf(f string, v ...interface{}) {
@@ -147,14 +167,14 @@ func (l Log) Debugf(f string, v ...interface{}) {
 	}
 	l.Msg = fmt.Sprintf(f, v...)
 	l.Level = LevelDbg
-	Config.Output(l)
+	Config.RunOutputs(l)
 }
 
 func (l Log) Trace(v ...interface{}) Log {
 	l.Msg = fmt.Sprint(v...)
 	l.Level = LevelTrace
 	if l.hasDebug() {
-		Config.Output(l)
+		Config.RunOutputs(l)
 		return l
 	}
 
@@ -166,7 +186,7 @@ func (l Log) Tracef(f string, v ...interface{}) Log {
 	l.Msg = fmt.Sprintf(f, v...)
 	l.Level = LevelTrace
 	if l.hasDebug() {
-		Config.Output(l)
+		Config.RunOutputs(l)
 		return l
 	}
 

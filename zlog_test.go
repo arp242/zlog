@@ -65,7 +65,9 @@ func TestLog(t *testing.T) {
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
 			var buf bytes.Buffer
-			Config.Output = func(l Log) { buf.WriteString(Config.Format(l)) }
+			Config.Outputs = []func(l Log){
+				func(l Log) { buf.WriteString(Config.Format(l)) },
+			}
 
 			tt.in()
 			out := buf.String()
