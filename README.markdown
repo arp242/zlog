@@ -3,12 +3,13 @@
 [![codecov](https://codecov.io/gh/zgoat/zlog/branch/master/graph/badge.svg)](https://codecov.io/gh/zgoat/zlog)
 [![GoDoc](https://godoc.org/zgo.at/zlog?status.svg)](https://godoc.org/zgo.at/zlog)
 
-Go logging library. Canonical import path: `zgo.at/zlog`.
+Go logging library. Canonical import path: `zgo.at/zlog`. You will need Go 1.10
+or newer.
 
 The main goal is to offer a friendly API which gets out of your way.
 
 Getting the maximum possible amount of performance or zero-allocations are not a
-goal, although simple benchmarks show it should be Fast Enough™ for most
+goal, although simple benchmarks show it should be *Fast Enough™* for most
 purposes (if not, there are a few max-performance libraries already).
 
 Usage
@@ -58,20 +59,24 @@ general log with mostly useless info.
 You can also easily print timings; this is intended for development and only
 printed for modules marked as debug:
 
-    log := zlog.Debug("long-running").Module("long-running")
+```go
+log := zlog.Debug("long-running").Module("long-running")
 
-    time.Sleep(1 * time.Second)
-    log = log.Since("sleep one")    //   long-running 11ms  sleep one
+time.Sleep(1 * time.Second)
+log = log.Since("sleep one")    //   long-running 11ms  sleep one
 
-    time.Sleep(20*time.Millisecond)
-    log.Since("sleep two")          //   long-running 11ms  sleep two
+time.Sleep(20*time.Millisecond)
+log.Since("sleep two")          //   long-running 11ms  sleep two
+```
 
 And finally there is the `Recover()` helper functions to recover from panics:
 
-    go func() {
-        defer zlog.Recover()        // Recover panics and report with Error().
-        panic("oh noes!")
-    }
+```go
+go func() {
+    defer zlog.Recover()        // Recover panics and report with Error().
+    panic("oh noes!")
+}
+```
 
 See [GoDoc](https://godoc.org/zgo.at/zlog) for the full reference.
 
@@ -85,5 +90,7 @@ initialisation of your app).
 It's not possible to configure individual logger instances. It's not often
 needed, and adds some complexity.
 
-- [zgo.at/zlog-sentry](https://github.com/zgoat/zlog_sentry) – send errors to
+Existing outputs you can use:
+
+- [zgo.at/zlog_sentry](https://github.com/zgoat/zlog_sentry) – send errors to
   [Sentry](https://sentry.io).

@@ -3,11 +3,11 @@ go:
   - 1.11.x
   - 1.12.x
 go_import_path: zgo.at/log
+env:
+  - GO111MODULE=on
 notifications:
   email: false
-install:
 script: |
-  export GO111MODULE=on
   go test -race \
     -coverprofile=coverage.txt \
     -coverpkg=./... \

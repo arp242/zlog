@@ -15,18 +15,6 @@ import (
 
 // ConfigT is the configuration struct.
 type ConfigT struct {
-	// Time/date format as accepted by time.Format().
-	//
-	// The default is to just print the time, which works well in development.
-	// For production you probably want to use time.RFC3339 or some such.
-	//
-	// This is used in the standard format() function, not not elsewhere.
-	FmtTime string
-
-	// Format function used by the default stdout/stderr output. This takes a
-	// Log entry and formats it for output.
-	Format func(Log) string
-
 	// Outputs for a Log entry.
 	//
 	// The default is to print to stderr for errors, and stdout for everything
@@ -48,7 +36,7 @@ type ConfigT struct {
 	//
 	//        // .. send to external logging service ..
 	//    })
-	Outputs []func(Log)
+	Outputs []OutputFunc
 
 	// Filter stack traces, only used if the error is a github.com/pkg/errors
 	// with a stack trace.
@@ -57,6 +45,19 @@ type ConfigT struct {
 
 	// Global debug modules; always print debug information for these.
 	Debug []string
+
+	// Format function used by the default stdout/stderr output. This takes a
+	// Log entry and formats it for output.
+	Format func(Log) string
+
+	// Time/date format as accepted by time.Format(); used in the default
+	// Format() function.
+	//
+	// The default is to just print the time, which works well in development.
+	// For production you probably want to use time.RFC3339 or some such.
+	//
+	// This is used in the standard format() function, not not elsewhere.
+	FmtTime string
 }
 
 func (c ConfigT) RunOutputs(l Log) {
@@ -65,6 +66,9 @@ func (c ConfigT) RunOutputs(l Log) {
 	}
 }
 
+// OutputFunc is an output function, used in Config.Outputs.
+type OutputFunc func(Log)
+
 // Config for this package.
 var Config ConfigT
 
@@ -72,11 +76,11 @@ func init() {
 	Config = ConfigT{
 		FmtTime: "15:04:05 ",
 		Format:  format,
-		Outputs: []func(Log){output},
+		Outputs: []OutputFunc{output},
 	}
 }
 
-// Debug levels.
+// Log levels.
 const (
 	LevelInfo  = 0
 	LevelErr   = 1
@@ -105,16 +109,27 @@ type (
 	F map[string]interface{}
 )
 
-func Module(m string) Log   { return Log{Modules: []string{m}, since: time.Now()} }
-func Fields(f F) Log        { return Log{Data: f} }
+// Module adds a module to this Log entry.
+//
+// You can add multiple Modules.
+func Module(m string) Log { return Log{Modules: []string{m}, since: time.Now()} }
+
+// TODO: rename? Confusing with Log.Debug() now, and also means we can't add it
+// to Log.
 func Debug(m ...string) Log { return Log{DebugModules: m} }
 
+func Fields(f F) Log                    { return Log{Data: f} }
 func Print(v ...interface{})            { Log{}.Print(v...) }
 func Printf(f string, v ...interface{}) { Log{}.Printf(f, v...) }
 func Error(err error)                   { Log{}.Error(err) }
 func Errorf(f string, v ...interface{}) { Log{}.Errorf(f, v...) }
 
-func (l Log) ResetTrace()                 { l.Traces = []string{} }
+// ResetTrace removes all trace logs added with Trace() and Tracef().
+func (l Log) ResetTrace() { l.Traces = []string{} }
+
+// Context adds a context to the Log entry.
+//
+// This isn't used by zlog, and mostly so that outputs can use it if needed.
 func (l Log) Context(ctx context.Context) { l.Ctx = ctx }
 
 func (l Log) Module(m string) Log {
@@ -123,6 +138,9 @@ func (l Log) Module(m string) Log {
 	return l
 }
 
+// Fields replaces the log data.
+//
+// Any existing data will be removed.
 func (l Log) Fields(f F) Log {
 	l.Data = f
 	return l

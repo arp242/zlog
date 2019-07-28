@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -65,8 +66,13 @@ func TestLog(t *testing.T) {
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
 			var buf bytes.Buffer
-			Config.Outputs = []func(l Log){
-				func(l Log) { buf.WriteString(Config.Format(l)) },
+			var lock sync.Mutex
+			Config.Outputs = []OutputFunc{
+				func(l Log) {
+					lock.Lock()
+					buf.WriteString(Config.Format(l))
+					lock.Unlock()
+				},
 			}
 
 			tt.in()
