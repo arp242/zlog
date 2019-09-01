@@ -1,12 +1,16 @@
 // Package zlog is a logging library.
 package zlog // import "zgo.at/zlog"
 
+// TODO: add something to make it easy to show file locations?
+// https://github.com/glycerine/vprint
+
 import (
 	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"runtime/pprof"
 	"strings"
 	"time"
 
@@ -260,6 +264,10 @@ var stderr io.Writer = os.Stderr
 //
 // It's mainly intended for quick printf-style performance debugging and will
 // only work in debug mode. It will always output to stderr.
+//
+// TODO: make it possible/easy to add this to fields?
+//   01:40:45 HitStats.List: INFO: selected 1
+//        {select hits="3.527172ms" select hit_stats="1.057136ms" reorder data="409.398µs" get total="1.403426ms"}
 func (l Log) Since(msg string) Log {
 	if !l.hasDebug() {
 		return l
@@ -318,4 +326,35 @@ func Recover(cb ...func(Log) Log) {
 			l = cb[i](l)
 		}
 	}
+}
+
+// CPUProfile writes a memory if the path is non-empty.
+//
+// This should be called on start and the returned function on end (e.g. defer).
+func CPUProfile(path string) func() {
+	if path == "" {
+		return func() {}
+	}
+
+	fp, err := os.Create(path)
+	if err != nil {
+		panic(err)
+	}
+	pprof.StartCPUProfile(fp)
+	return pprof.StopCPUProfile
+}
+
+// MemProfile writes a memory if the path is non-empty. This should be called
+// on server shutdown.
+func MemProfile(path string) {
+	if path == "" {
+		return
+	}
+
+	fp, err := os.Create(path)
+	if err != nil {
+		panic(err)
+	}
+	pprof.WriteHeapProfile(fp)
+	fp.Close()
 }
