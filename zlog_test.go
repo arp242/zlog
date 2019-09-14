@@ -41,12 +41,13 @@ func TestLog(t *testing.T) {
 		{func() { Module("test").Fields(F{"k": 3}).Print("w00t") }, "test: INFO: w00t\n\t{k='\\x03'}"},
 
 		{func() { Module("test").Debug("w00t") }, ""},
-		{func() { Debug("xxx").Module("test").Debug("w00t") }, ""},
-		{func() { Debug("test").Module("test").Debug("w00t") }, "test: DEBUG: w00t"},
-		{func() { Debug("test").Module("test").Debugf("w00t %d", 42) }, "test: DEBUG: w00t 42"},
+		{func() { SetDebug("xxx").Module("test").Debug("w00t") }, ""},
+		{func() { SetDebug("test").Module("test").Debug("w00t") }, "test: DEBUG: w00t"},
+		{func() { Module("test").SetDebug("test").Debug("w00t") }, "test: DEBUG: w00t"},
+		{func() { SetDebug("test").Module("test").Debugf("w00t %d", 42) }, "test: DEBUG: w00t 42"},
 
 		{func() { Module("test").Trace("w00t") }, ""},
-		{func() { Debug("test").Module("test").Trace("w00t") }, "test: TRACE: w00t"},
+		{func() { SetDebug("test").Module("test").Trace("w00t") }, "test: TRACE: w00t"},
 		{func() { Module("test").Tracef("w00t %d", 42).Errorf("oh noes") }, "test: TRACE: w00t 42\n" + n.Format(Config.FmtTime) + "test: ERROR: oh noes\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
 		{func() { Module("test").Trace("w00t").Print("print") }, "test: INFO: print"},
 		{func() { Module("test").Tracef("w00t").Print("print") }, "test: INFO: print"},
@@ -95,16 +96,16 @@ func TestSince(t *testing.T) {
 		want string
 	}{
 		{func() { Module("test").Since("xxx") }, ""},
-		{func() { Debug("test").Module("test").Since("xxx") }, "  test     0ms  xxx\n"},
+		{func() { SetDebug("test").Module("test").Since("xxx") }, "  test     0ms  xxx\n"},
 		{func() {
-			l := Debug("test").Module("test").Since("xxx")
+			l := SetDebug("test").Module("test").Since("xxx")
 			time.Sleep(2 * time.Millisecond)
 			l.Since("yyy")
 			time.Sleep(4 * time.Millisecond)
 			l.Since("zzz")
 		}, "  test     0ms  xxx\n  test     2ms  yyy\n  test     6ms  zzz\n"},
 		{func() {
-			l := Debug("test").Module("test").Since("xxx")
+			l := SetDebug("test").Module("test").Since("xxx")
 			time.Sleep(2 * time.Millisecond)
 			l = l.Since("yyy")
 			time.Sleep(4 * time.Millisecond)

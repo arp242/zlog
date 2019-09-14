@@ -118,10 +118,7 @@ type (
 // You can add multiple Modules.
 func Module(m string) Log { return Log{Modules: []string{m}, since: time.Now()} }
 
-// TODO: rename? Confusing with Log.Debug() now, and also means we can't add it
-// to Log.
-func Debug(m ...string) Log { return Log{DebugModules: m} }
-
+func SetDebug(m ...string) Log          { return Log{DebugModules: m} }
 func Fields(f F) Log                    { return Log{Data: f} }
 func Print(v ...interface{})            { Log{}.Print(v...) }
 func Printf(f string, v ...interface{}) { Log{}.Printf(f, v...) }
@@ -135,6 +132,11 @@ func (l Log) ResetTrace() { l.Traces = []string{} }
 //
 // This isn't used by zlog, and mostly so that outputs can use it if needed.
 func (l Log) Context(ctx context.Context) { l.Ctx = ctx }
+
+func (l Log) SetDebug(m ...string) Log {
+	l.DebugModules = append(l.DebugModules, m...)
+	return l
+}
 
 func (l Log) Module(m string) Log {
 	l.Modules = append(l.Modules, m)
@@ -238,8 +240,6 @@ func (l Log) Request(r *http.Request) Log {
 	})
 }
 
-// TODO: we could store as map[string]struct{} internally so it's a bit faster.
-// Not sure if that's actually worth it?
 func (l Log) hasDebug() bool {
 	for _, m := range l.Modules {
 		for _, d := range Config.Debug {
