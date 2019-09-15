@@ -61,6 +61,8 @@ func TestLog(t *testing.T) {
 			r, _ := http.NewRequest("PUT", "/path?k=v&a=b", nil)
 			FieldsRequest(r).Error(errors.New("w00t"))
 		}, "ERROR: w00t\n\t{http_form=\"\" http_method=\"PUT\" http_url=\"/path?k=v&a=b\"}\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
+
+		{func() { FieldsLocation().Print("print") }, "INFO: print\n\t{location=\"zlog_test.go:65\"}"},
 	}
 
 	for i, tt := range tests {

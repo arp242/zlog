@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
+	"runtime"
 	"runtime/pprof"
 	"strings"
 	"time"
@@ -125,6 +127,9 @@ func Errorf(f string, v ...interface{}) { Log{}.Errorf(f, v...) }
 
 // FieldsRequest adds information from a HTTP request as fields.
 func FieldsRequest(r *http.Request) Log { return Log{}.FieldsRequest(r) }
+
+// FieldsLocation records the caller location.
+func FieldsLocation() Log { return Log{}.FieldsLocation() }
 
 // ResetTrace removes all trace logs added with Trace() and Tracef().
 func (l Log) ResetTrace() { l.Traces = []string{} }
@@ -246,6 +251,14 @@ func (l Log) FieldsRequest(r *http.Request) Log {
 		"http_url":    r.URL.String(),
 		"http_form":   r.Form.Encode(),
 	})
+}
+
+// FieldsLocation records the caller location.
+func (l Log) FieldsLocation() Log {
+	if _, file, line, ok := runtime.Caller(2); ok {
+		l = l.Fields(F{"location": fmt.Sprintf("%s:%d", filepath.Base(file), line)})
+	}
+	return l
 }
 
 func (l Log) hasDebug() bool {
