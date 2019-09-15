@@ -3,7 +3,7 @@
 [![codecov](https://codecov.io/gh/zgoat/zlog/branch/master/graph/badge.svg)](https://codecov.io/gh/zgoat/zlog)
 [![GoDoc](https://godoc.org/zgo.at/zlog?status.svg)](https://godoc.org/zgo.at/zlog)
 
-Go logging library. Canonical import path: `zgo.at/zlog`. You will need Go 1.10
+Go logging library. Canonical import path: `zgo.at/zlog`. You will need Go 1.11
 or newer.
 
 The main goal is to offer a friendly API which gets out of your way.
