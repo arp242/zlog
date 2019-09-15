@@ -3,6 +3,7 @@ package zlog
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -62,16 +63,15 @@ func format(l Log) string {
 	}
 
 	if len(l.Data) > 0 {
-		b.WriteString("\n\t{")
-		first := true
+		data := make([]string, len(l.Data))
+		i := 0
 		for k, v := range l.Data {
-			if !first {
-				b.WriteString(" ")
-			} else {
-				first = false
-			}
-			fmt.Fprintf(b, "%s=%q", k, v)
+			data[i] = fmt.Sprintf("%s=%q", k, v)
+			i++
 		}
+		sort.Strings(data)
+		b.WriteString("\n\t{")
+		b.WriteString(strings.Join(data, " "))
 		b.WriteString("}")
 	}
 

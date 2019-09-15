@@ -52,16 +52,15 @@ func TestLog(t *testing.T) {
 		{func() { Module("test").Trace("w00t").Print("print") }, "test: INFO: print"},
 		{func() { Module("test").Tracef("w00t").Print("print") }, "test: INFO: print"},
 
-		// TODO: fails sometimes as field order is inconsistent.
 		{func() {
 			r, _ := http.NewRequest("PUT", "/path?k=v&a=b", nil)
 			//Request(r).Error(errors.New("w00t"))
 			Request(r).Print("w00t")
-		}, "INFO: w00t\n\t{http_method=\"PUT\" http_url=\"/path?k=v&a=b\" http_form=\"\"}"},
+		}, "INFO: w00t\n\t{http_form=\"\" http_method=\"PUT\" http_url=\"/path?k=v&a=b\"}"},
 		{func() {
 			r, _ := http.NewRequest("PUT", "/path?k=v&a=b", nil)
 			Request(r).Error(errors.New("w00t"))
-		}, "ERROR: w00t\n\t{http_method=\"PUT\" http_url=\"/path?k=v&a=b\" http_form=\"\"}\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
+		}, "ERROR: w00t\n\t{http_form=\"\" http_method=\"PUT\" http_url=\"/path?k=v&a=b\"}\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
 	}
 
 	for i, tt := range tests {
@@ -138,7 +137,7 @@ func TestSince(t *testing.T) {
 			},
 		}
 
-		l := Module("test").Since("xxx")
+		l := Module("test").Since("xxx").Fields(F{"1": 2})
 		time.Sleep(2 * time.Millisecond)
 		l = l.Since("yyy")
 		time.Sleep(4 * time.Millisecond)
@@ -147,7 +146,7 @@ func TestSince(t *testing.T) {
 
 		out := buf.String()
 		out = out[strings.Index(out, ":")+7:]
-		want := "test: INFO: msg\n\t{xxx=\"0ms\" yyy=\"2ms\" zzz=\"4ms\"}"
+		want := "test: INFO: msg\n\t{1='\\x02' xxx=\"0ms\" yyy=\"2ms\" zzz=\"4ms\"}"
 		if out != want {
 			t.Errorf("\nout:  %q\nwant: %q\n", out, want)
 		}

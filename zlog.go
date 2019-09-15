@@ -1,9 +1,6 @@
 // Package zlog is a logging library.
 package zlog // import "zgo.at/zlog"
 
-// TODO: add something to make it easy to show file locations?
-// https://github.com/glycerine/vprint
-
 import (
 	"context"
 	"fmt"
@@ -145,9 +142,16 @@ func (l Log) Module(m string) Log {
 	return l
 }
 
-// Fields replaces the log data. Any existing data will be removed.
+// Fields sets the log data.
 func (l Log) Fields(f F) Log {
-	l.Data = f
+	if l.Data == nil {
+		l.Data = f
+		return l
+	}
+
+	for k, v := range f {
+		l.Data[k] = v
+	}
 	return l
 }
 
@@ -239,7 +243,6 @@ func (l Log) Request(r *http.Request) Log {
 		panic("zlog.Request: *http.Request is nil")
 	}
 
-	// TODO: Fields replaces, not adds.
 	return l.Fields(F{
 		"http_method": r.Method,
 		"http_url":    r.URL.String(),
@@ -248,10 +251,7 @@ func (l Log) Request(r *http.Request) Log {
 }
 
 // SinceLog adds timing information recorded with Since as fields.
-func (l Log) SinceLog() Log {
-	// TODO: Fields replaces, not adds.
-	return l.Fields(l.sinceLog)
-}
+func (l Log) SinceLog() Log { return l.Fields(l.sinceLog) }
 
 func (l Log) hasDebug() bool {
 	for _, m := range l.Modules {
