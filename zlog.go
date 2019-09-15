@@ -123,6 +123,9 @@ func Printf(f string, v ...interface{}) { Log{}.Printf(f, v...) }
 func Error(err error)                   { Log{}.Error(err) }
 func Errorf(f string, v ...interface{}) { Log{}.Errorf(f, v...) }
 
+// FieldsRequest adds information from a HTTP request as fields.
+func FieldsRequest(r *http.Request) Log { return Log{}.FieldsRequest(r) }
+
 // ResetTrace removes all trace logs added with Trace() and Tracef().
 func (l Log) ResetTrace() { l.Traces = []string{} }
 
@@ -229,18 +232,13 @@ func (l Log) Tracef(f string, v ...interface{}) Log {
 	return l
 }
 
-// Request adds information from a HTTP request as fields.
-func Request(r *http.Request) Log {
-	if r == nil {
-		panic("zlog.Request: *http.Request is nil")
-	}
-	return Log{}.Request(r)
-}
+// FieldsSince adds timing information recorded with Since as fields.
+func (l Log) FieldsSince() Log { return l.Fields(l.sinceLog) }
 
-// Request adds information from a HTTP request as fields.
-func (l Log) Request(r *http.Request) Log {
+// FieldsRequest adds information from a HTTP request as fields.
+func (l Log) FieldsRequest(r *http.Request) Log {
 	if r == nil {
-		panic("zlog.Request: *http.Request is nil")
+		panic("zlog.FieldsRequest: *http.Request is nil")
 	}
 
 	return l.Fields(F{
@@ -249,9 +247,6 @@ func (l Log) Request(r *http.Request) Log {
 		"http_form":   r.Form.Encode(),
 	})
 }
-
-// SinceLog adds timing information recorded with Since as fields.
-func (l Log) SinceLog() Log { return l.Fields(l.sinceLog) }
 
 func (l Log) hasDebug() bool {
 	for _, m := range l.Modules {
@@ -270,13 +265,13 @@ func (l Log) hasDebug() bool {
 	return false
 }
 
-var stderr io.Writer = os.Stderr
+var stderr io.Writer = os.Stderr // So we can swap it out in test.
 
 // Since records the duration since the last Since() or Module() call with the
 // given message.
 //
 // The result will be printed to stderr if this module is in the debug list. It
-// can also be added to a Log with SinceLog().
+// can also be added to a Log with FieldsSince().
 func (l Log) Since(msg string) Log {
 	n := time.Now()
 	if l.since.IsZero() {

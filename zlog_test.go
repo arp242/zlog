@@ -55,11 +55,11 @@ func TestLog(t *testing.T) {
 		{func() {
 			r, _ := http.NewRequest("PUT", "/path?k=v&a=b", nil)
 			//Request(r).Error(errors.New("w00t"))
-			Request(r).Print("w00t")
+			FieldsRequest(r).Print("w00t")
 		}, "INFO: w00t\n\t{http_form=\"\" http_method=\"PUT\" http_url=\"/path?k=v&a=b\"}"},
 		{func() {
 			r, _ := http.NewRequest("PUT", "/path?k=v&a=b", nil)
-			Request(r).Error(errors.New("w00t"))
+			FieldsRequest(r).Error(errors.New("w00t"))
 		}, "ERROR: w00t\n\t{http_form=\"\" http_method=\"PUT\" http_url=\"/path?k=v&a=b\"}\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
 	}
 
@@ -142,7 +142,7 @@ func TestSince(t *testing.T) {
 		l = l.Since("yyy")
 		time.Sleep(4 * time.Millisecond)
 		l.Since("zzz")
-		l.SinceLog().Print("msg")
+		l.FieldsSince().Print("msg")
 
 		out := buf.String()
 		out = out[strings.Index(out, ":")+7:]
