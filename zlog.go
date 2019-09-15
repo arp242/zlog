@@ -106,7 +106,8 @@ type (
 		DebugModules []string // List of modules to debug.
 		Traces       []string // Traces added to the logger.
 
-		since time.Time
+		since    time.Time
+		sinceLog F
 	}
 
 	// F are log fields.
@@ -144,38 +145,42 @@ func (l Log) Module(m string) Log {
 	return l
 }
 
-// Fields replaces the log data.
-//
-// Any existing data will be removed.
+// Fields replaces the log data. Any existing data will be removed.
 func (l Log) Fields(f F) Log {
 	l.Data = f
 	return l
 }
 
+// Print an informational error.
 func (l Log) Print(v ...interface{}) {
 	l.Msg = fmt.Sprint(v...)
 	l.Level = LevelInfo
 	Config.RunOutputs(l)
 }
 
+// Printf an informational error.
 func (l Log) Printf(f string, v ...interface{}) {
 	l.Msg = fmt.Sprintf(f, v...)
 	l.Level = LevelInfo
 	Config.RunOutputs(l)
 }
 
+// Error prints an error.
 func (l Log) Error(err error) {
 	l.Err = err
 	l.Level = LevelErr
 	Config.RunOutputs(l)
 }
 
+// Errorf prints an error.
 func (l Log) Errorf(f string, v ...interface{}) {
 	l.Err = fmt.Errorf(f, v...)
 	l.Level = LevelErr
 	Config.RunOutputs(l)
 }
 
+// Debug records debugging information. This won't do anything if the current
+// module isn't beind debugged.
 func (l Log) Debug(v ...interface{}) {
 	if !l.hasDebug() {
 		return
@@ -185,6 +190,8 @@ func (l Log) Debug(v ...interface{}) {
 	Config.RunOutputs(l)
 }
 
+// Debugf records debugging information. This won't do anything if the current
+// module isn't beind debugged.
 func (l Log) Debugf(f string, v ...interface{}) {
 	if !l.hasDebug() {
 		return
@@ -223,7 +230,6 @@ func Request(r *http.Request) Log {
 	if r == nil {
 		panic("zlog.Request: *http.Request is nil")
 	}
-
 	return Log{}.Request(r)
 }
 
@@ -233,11 +239,18 @@ func (l Log) Request(r *http.Request) Log {
 		panic("zlog.Request: *http.Request is nil")
 	}
 
+	// TODO: Fields replaces, not adds.
 	return l.Fields(F{
 		"http_method": r.Method,
 		"http_url":    r.URL.String(),
 		"http_form":   r.Form.Encode(),
 	})
+}
+
+// SinceLog adds timing information recorded with Since as fields.
+func (l Log) SinceLog() Log {
+	// TODO: Fields replaces, not adds.
+	return l.Fields(l.sinceLog)
 }
 
 func (l Log) hasDebug() bool {
@@ -259,28 +272,26 @@ func (l Log) hasDebug() bool {
 
 var stderr io.Writer = os.Stderr
 
-// Since prints the duration since the last Since() or Module() call with the
+// Since records the duration since the last Since() or Module() call with the
 // given message.
 //
-// It's mainly intended for quick printf-style performance debugging and will
-// only work in debug mode. It will always output to stderr.
-//
-// TODO: make it possible/easy to add this to fields?
-//   01:40:45 HitStats.List: INFO: selected 1
-//        {select hits="3.527172ms" select hit_stats="1.057136ms" reorder data="409.398µs" get total="1.403426ms"}
+// The result will be printed to stderr if this module is in the debug list. It
+// can also be added to a Log with SinceLog().
 func (l Log) Since(msg string) Log {
-	if !l.hasDebug() {
-		return l
-	}
-
 	n := time.Now()
 	if l.since.IsZero() {
 		l.since = n
 	}
 
-	fmt.Fprintf(stderr, "  %s %5dms  %s\n",
-		strings.Join(l.Modules, ":"),
-		time.Since(l.since).Nanoseconds()/1000000, msg)
+	s := time.Since(l.since).Nanoseconds() / 1000000
+	if l.sinceLog == nil {
+		l.sinceLog = make(F)
+	}
+	l.sinceLog[msg] = fmt.Sprintf("%dms", s)
+	if l.hasDebug() {
+		fmt.Fprintf(stderr, "  %s %5dms  %s\n", strings.Join(l.Modules, ":"), s, msg)
+	}
+
 	l.since = n
 	return l
 }

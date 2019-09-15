@@ -121,12 +121,37 @@ func TestSince(t *testing.T) {
 
 			tt.in()
 			out := buf.String()
-
 			if out != tt.want {
 				t.Errorf("\nout:  %q\nwant: %q\n", out, tt.want)
 			}
 		})
 	}
+
+	t.Run("SinceLog", func(t *testing.T) {
+		var buf bytes.Buffer
+		var lock sync.Mutex
+		Config.Outputs = []OutputFunc{
+			func(l Log) {
+				lock.Lock()
+				buf.WriteString(Config.Format(l))
+				lock.Unlock()
+			},
+		}
+
+		l := Module("test").Since("xxx")
+		time.Sleep(2 * time.Millisecond)
+		l = l.Since("yyy")
+		time.Sleep(4 * time.Millisecond)
+		l.Since("zzz")
+		l.SinceLog().Print("msg")
+
+		out := buf.String()
+		out = out[strings.Index(out, ":")+7:]
+		want := "test: INFO: msg\n\t{xxx=\"0ms\" yyy=\"2ms\" zzz=\"4ms\"}"
+		if out != want {
+			t.Errorf("\nout:  %q\nwant: %q\n", out, want)
+		}
+	})
 }
 
 // TODO: expand test (i.e. test that it works beyond running).
