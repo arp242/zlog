@@ -1,4 +1,4 @@
-[![This project is considered experimental](https://img.shields.io/badge/Status-experimental-red.svg)](https://arp242.net/status/experimental)
+[![This project is considered stable](https://img.shields.io/badge/Status-stable-green.svg)](https://arp242.net/status/stable)
 [![Build Status](https://travis-ci.org/zgoat/zlog.svg?branch=master)](https://travis-ci.org/zgoat/zlog)
 [![codecov](https://codecov.io/gh/zgoat/zlog/branch/master/graph/badge.svg)](https://codecov.io/gh/zgoat/zlog)
 [![GoDoc](https://godoc.org/zgo.at/zlog?status.svg)](https://godoc.org/zgo.at/zlog)
@@ -6,11 +6,11 @@
 Go logging library. Canonical import path: `zgo.at/zlog`. You will need Go 1.11
 or newer.
 
-The main goal is to offer a friendly API which gets out of your way.
+The main goal is to offer a friendly and ergonomic API.
 
-Getting the maximum possible amount of performance or zero-allocations are not a
-goal, although simple benchmarks show it should be *Fast Enough™* for most
-purposes (if not, there are a few max-performance libraries already).
+Getting the maximum possible amount of performance or zero-allocations are not
+goals, although simple benchmarks show it should be more than *Fast Enough™* for
+most purposes (if not, there are a few max-performance libraries already).
 
 Usage
 -----
@@ -40,7 +40,7 @@ Debug logs are printed only for modules marked as debug:
 
 ```go
 zlog.Module("bar").Debug("w00t")    // Prints nothing (didn't enable module "bar").
-log := zlog.Debug("bar")            // Enable debug logs only for module "bar".
+log := zlog.SetDebug("bar")         // Enable debug logs only for module "bar".
 log.Module("bar").Debug("w00t")     // 15:56:55 w00t
 ```
 
@@ -56,20 +56,23 @@ log.ResetTrace()                    // Remove all traces.
 This is pretty useful for adding context to errors without clobbering your
 general log with mostly useless info.
 
-You can also easily print timings; this is intended for development and only
-printed for modules marked as debug:
+You can also easily record timings; this is printed for modules marked as debug:
 
 ```go
-log := zlog.Debug("long-running").Module("long-running")
+log := zlog.SetDebug("long-running").Module("long-running")
 
 time.Sleep(1 * time.Second)
 log = log.Since("sleep one")    //   long-running 11ms  sleep one
 
 time.Sleep(20*time.Millisecond)
 log.Since("sleep two")          //   long-running 11ms  sleep two
+
+// Add timing as fields, always works regardless of Debug.
+log.SinceLog().Print("long-running finshed") 
 ```
 
-And finally there is the `Recover()` helper functions to recover from panics:
+The `Recover()` helper function makes it easier to recover from panics in
+goroutines:
 
 ```go
 go func() {

@@ -298,22 +298,22 @@ func (l Log) Since(msg string) Log {
 
 // Recover from a panic.
 //
+// Any panics will be recover()'d and reported with Error():
+//
 //   go func() {
 //       defer zlog.Recover()
 //       // ... do work...
 //   }()
 //
-// Any panics will be recover()'d and reported with Error().
-//
-// The first callback will be called *before* the Error() call, and can be used
-// to modify the Log instance, for example to add fields:
+// The first callback will be called before the Error() call, and can be used to
+// modify the Log instance, for example to add fields:
 //
 //   defer zlog.Recover(func(l Log) Log {
 //       return l.Fields(zlog.F{"id": id})
 //   })
 //
-// Any other callbacks will be called *after* the Error() call. Modifying the
-// Log instance has no real use.
+// Any other callbacks will be called after the Error() call. Modifying the Log
+// instance has no real use.
 func Recover(cb ...func(Log) Log) {
 	r := recover()
 	if r == nil {
@@ -339,10 +339,10 @@ func Recover(cb ...func(Log) Log) {
 	}
 }
 
-// CPUProfile writes a memory if the path is non-empty.
+// ProfileCPU writes a memory if the path is non-empty.
 //
 // This should be called on start and the returned function on end (e.g. defer).
-func CPUProfile(path string) func() {
+func ProfileCPU(path string) func() {
 	if path == "" {
 		return func() {}
 	}
@@ -355,9 +355,9 @@ func CPUProfile(path string) func() {
 	return pprof.StopCPUProfile
 }
 
-// MemProfile writes a memory if the path is non-empty. This should be called
-// on server shutdown.
-func MemProfile(path string) {
+// ProfileHeap writes a memory if the path is non-empty. This is usually called
+// just before the program exits.
+func ProfileHeap(path string) {
 	if path == "" {
 		return
 	}
