@@ -69,9 +69,29 @@ func format(l Log) string {
 			data[i] = fmt.Sprintf("%s=%q", k, v)
 			i++
 		}
+
 		sort.Strings(data)
-		b.WriteString("\n\t{")
-		b.WriteString(strings.Join(data, " "))
+		wrap := b.Len()
+		if enableColors {
+			wrap -= 13
+		}
+		for i := range data {
+			wrap += len(data[i]) + 1
+
+			// This entry makes it go beyond 80 lines, so add newline to
+			// previous.
+			if i > 0 && wrap >= 80 {
+				wrap = 8
+				l := len(data[i-1])
+				data[i-1] = data[i-1][:l-1] + "\n\t"
+			}
+			if i != len(data)-1 {
+				data[i] += " "
+			}
+		}
+
+		b.WriteString(" {")
+		b.WriteString(strings.Join(data, ""))
 		b.WriteString("}")
 	}
 

@@ -37,8 +37,8 @@ func TestLog(t *testing.T) {
 		{func() { Module("test").Module("second").Print("w00t") }, "test: second: INFO: w00t"},
 		{func() { Module("test").Error(errors.New("w00t")) }, "test: ERROR: w00t\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
 
-		{func() { Module("test").Fields(F{"k": "v"}).Print("w00t") }, "test: INFO: w00t\n\t{k=\"v\"}"},
-		{func() { Module("test").Fields(F{"k": 3}).Print("w00t") }, "test: INFO: w00t\n\t{k='\\x03'}"},
+		{func() { Module("test").Fields(F{"k": "v"}).Print("w00t") }, "test: INFO: w00t {k=\"v\"}"},
+		{func() { Module("test").Fields(F{"k": 3}).Print("w00t") }, "test: INFO: w00t {k='\\x03'}"},
 
 		{func() { Module("test").Debug("w00t") }, ""},
 		{func() { SetDebug("xxx").Module("test").Debug("w00t") }, ""},
@@ -56,13 +56,25 @@ func TestLog(t *testing.T) {
 			r, _ := http.NewRequest("PUT", "/path?k=v&a=b", nil)
 			//Request(r).Error(errors.New("w00t"))
 			FieldsRequest(r).Print("w00t")
-		}, "INFO: w00t\n\t{http_form=\"\" http_method=\"PUT\" http_url=\"/path?k=v&a=b\"}"},
+		}, "INFO: w00t {http_form=\"\" http_method=\"PUT\" http_url=\"/path?k=v&a=b\"}"},
 		{func() {
 			r, _ := http.NewRequest("PUT", "/path?k=v&a=b", nil)
 			FieldsRequest(r).Error(errors.New("w00t"))
-		}, "ERROR: w00t\n\t{http_form=\"\" http_method=\"PUT\" http_url=\"/path?k=v&a=b\"}\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
+		}, "ERROR: w00t {http_form=\"\" http_method=\"PUT\" http_url=\"/path?k=v&a=b\"}\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
 
-		{func() { FieldsLocation().Print("print") }, "INFO: print\n\t{location=\"zlog_test.go:65\"}"},
+		{func() { FieldsLocation().Print("print") }, "INFO: print {location=\"zlog_test.go:65\"}"},
+
+		// Wrap very long fields.
+		{func() {
+			Fields(F{
+				"a": "hello, world",
+				"b": "asdadsas",
+				"c": "asdadsadsa",
+				"d": "qwe asd zxc",
+				"e": "qwewqewq zxc",
+				"f": "asdasd zxc",
+			}).Print("wrap")
+		}, "INFO: wrap {a=\"hello, world\" b=\"asdadsas\" c=\"asdadsadsa\"\n\td=\"qwe asd zxc\" e=\"qwewqewq zxc\" f=\"asdasd zxc\"}"},
 	}
 
 	for i, tt := range tests {
@@ -148,7 +160,7 @@ func TestSince(t *testing.T) {
 
 		out := buf.String()
 		out = out[strings.Index(out, ":")+7:]
-		want := "test: INFO: msg\n\t{1='\\x02' xxx=\"0ms\" yyy=\"2ms\" zzz=\"4ms\"}"
+		want := "test: INFO: msg {1='\\x02' xxx=\"0ms\" yyy=\"2ms\" zzz=\"4ms\"}"
 		if out != want {
 			t.Errorf("\nout:  %q\nwant: %q\n", out, want)
 		}
