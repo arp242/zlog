@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/teamwork/utils/errorutil"
+	"zgo.at/utils/errorutil"
 )
 
 // ConfigT is the configuration struct.

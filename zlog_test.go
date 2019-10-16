@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/teamwork/utils/errorutil"
+	"zgo.at/utils/errorutil"
 )
 
 func TestLog(t *testing.T) {

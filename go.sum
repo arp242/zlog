@@ -1,4 +1,8 @@
+github.com/google/go-cmp v0.3.1/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMywk6iLU=
+github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
-github.com/teamwork/utils v0.0.0-20190114034940-d6a1f27ce92c h1:5/hkqtufOyLP25taIlo7BX9kLhw21unfjjdrOlwvFJk=
-github.com/teamwork/utils v0.0.0-20190114034940-d6a1f27ce92c/go.mod h1:rmPaJUVv426LGg3QR31m1N0bfpCdCVyh3dCWsJTQeDA=
+zgo.at/utils v0.0.0-20191016025157-52ea15392a16 h1:+wY2KBlxI32OF4XwirSm4kDRniNL/dooD8Efg3xxJ64=
+zgo.at/utils v0.0.0-20191016025157-52ea15392a16/go.mod h1:PET0dez1GVYYmyI5x/+eJGbyOOF9s2YW8U+gRv7Looo=
+zgo.at/ztest v0.0.0-20191016022435-f3e360521191 h1:OWHdZobQysBEpa01t+/xOeMO0ZrsI6viJa+4nLILJGI=
+zgo.at/ztest v0.0.0-20191016022435-f3e360521191/go.mod h1:iTxcAVkHLq73Qnd+a8rlwc6Ayrk8sbnJPsGeapG/y0Q=

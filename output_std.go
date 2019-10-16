@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/teamwork/utils/errorutil"
+	"zgo.at/utils/errorutil"
 )
 
 var (
