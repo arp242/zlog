@@ -63,18 +63,6 @@ func TestLog(t *testing.T) {
 		}, "ERROR: w00t {http_form=\"\" http_method=\"PUT\" http_url=\"/path?k=v&a=b\"}\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
 
 		{func() { FieldsLocation().Print("print") }, "INFO: print {location=\"zlog_test.go:65\"}"},
-
-		// Wrap very long fields.
-		{func() {
-			Fields(F{
-				"a": "hello, world",
-				"b": "asdadsas",
-				"c": "asdadsadsa",
-				"d": "qwe asd zxc",
-				"e": "qwewqewq zxc",
-				"f": "asdasd zxc",
-			}).Print("wrap")
-		}, "INFO: wrap {a=\"hello, world\" b=\"asdadsas\" c=\"asdadsadsa\"\n\td=\"qwe asd zxc\" e=\"qwewqewq zxc\" f=\"asdasd zxc\"}"},
 	}
 
 	for i, tt := range tests {

@@ -70,28 +70,10 @@ func format(l Log) string {
 			i++
 		}
 
-		sort.Strings(data)
-		wrap := b.Len()
-		if enableColors {
-			wrap -= 13
-		}
-		for i := range data {
-			wrap += len(data[i]) + 1
-
-			// This entry makes it go beyond 80 lines, so add newline to
-			// previous.
-			if i > 0 && wrap >= 80 {
-				wrap = 8
-				l := len(data[i-1])
-				data[i-1] = data[i-1][:l-1] + "\n\t"
-			}
-			if i != len(data)-1 {
-				data[i] += " "
-			}
-		}
+		sort.Strings(data) // Map order is random, so be predictable.
 
 		b.WriteString(" {")
-		b.WriteString(strings.Join(data, ""))
+		b.WriteString(strings.Join(data, " "))
 		b.WriteString("}")
 	}
 
