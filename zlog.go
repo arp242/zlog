@@ -119,6 +119,7 @@ type (
 func Module(m string) Log { return Log{Modules: []string{m}, since: time.Now()} }
 
 func SetDebug(m ...string) Log          { return Log{DebugModules: m} }
+func Field(k string, v interface{}) Log { return Log{Data: F{k: v}} }
 func Fields(f F) Log                    { return Log{Data: f} }
 func Print(v ...interface{})            { Log{}.Print(v...) }
 func Printf(f string, v ...interface{}) { Log{}.Printf(f, v...) }
@@ -150,7 +151,7 @@ func (l Log) Module(m string) Log {
 	return l
 }
 
-// Fields sets the log data.
+// Fields append data to the Log object.
 func (l Log) Fields(f F) Log {
 	if l.Data == nil {
 		l.Data = f
@@ -161,6 +162,11 @@ func (l Log) Fields(f F) Log {
 		l.Data[k] = v
 	}
 	return l
+}
+
+// Field sets one data field.
+func (l Log) Field(k string, v interface{}) Log {
+	return l.Fields(F{k: v})
 }
 
 // Print an informational error.

@@ -28,6 +28,9 @@ func TestLog(t *testing.T) {
 		in   func()
 		want string
 	}{
+		// TODO: get line nr. instead of hard-coding it here.
+		{func() { FieldsLocation().Print("print") }, "INFO: print {location=\"zlog_test.go:32\"}"},
+
 		{func() { Print("w00t") }, "INFO: w00t"},
 		{func() { Printf("w00t %s", "x") }, "INFO: w00t x"},
 		{func() { Error(errors.New("w00t")) }, "ERROR: w00t\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
@@ -39,6 +42,7 @@ func TestLog(t *testing.T) {
 
 		{func() { Module("test").Fields(F{"k": "v"}).Print("w00t") }, "test: INFO: w00t {k=\"v\"}"},
 		{func() { Module("test").Fields(F{"k": 3}).Print("w00t") }, "test: INFO: w00t {k='\\x03'}"},
+		{func() { Module("test").Fields(F{"k": 3}).Field("k", "1").Print("w00t") }, "test: INFO: w00t {k=\"1\"}"},
 
 		{func() { Module("test").Debug("w00t") }, ""},
 		{func() { SetDebug("xxx").Module("test").Debug("w00t") }, ""},
@@ -61,8 +65,6 @@ func TestLog(t *testing.T) {
 			r, _ := http.NewRequest("PUT", "/path?k=v&a=b", nil)
 			FieldsRequest(r).Error(errors.New("w00t"))
 		}, "ERROR: w00t {http_form=\"\" http_method=\"PUT\" http_url=\"/path?k=v&a=b\"}\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
-
-		{func() { FieldsLocation().Print("print") }, "INFO: print {location=\"zlog_test.go:65\"}"},
 	}
 
 	for i, tt := range tests {
