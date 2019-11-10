@@ -41,8 +41,9 @@ func TestLog(t *testing.T) {
 		{func() { Module("test").Error(errors.New("w00t")) }, "test: ERROR: w00t\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
 
 		{func() { Module("test").Fields(F{"k": "v"}).Print("w00t") }, "test: INFO: w00t {k=\"v\"}"},
-		{func() { Module("test").Fields(F{"k": 3}).Print("w00t") }, "test: INFO: w00t {k='\\x03'}"},
-		{func() { Module("test").Fields(F{"k": 3}).Field("k", "1").Print("w00t") }, "test: INFO: w00t {k=\"1\"}"},
+		{func() { Module("test").Fields(F{"k": 3}).Print("w00t") }, "test: INFO: w00t {k=3}"},
+		{func() { Module("test").Fields(F{"k": 3}).Field("k", "s").Print("w00t") }, "test: INFO: w00t {k=\"s\"}"},
+		{func() { Module("test").Field("k", 404).Print("w00t") }, "test: INFO: w00t {k=404}"},
 
 		{func() { Module("test").Debug("w00t") }, ""},
 		{func() { SetDebug("xxx").Module("test").Debug("w00t") }, ""},
@@ -150,7 +151,7 @@ func TestSince(t *testing.T) {
 
 		out := buf.String()
 		out = out[strings.Index(out, ":")+7:]
-		want := "test: INFO: msg {1='\\x02' xxx=\"0ms\" yyy=\"2ms\" zzz=\"4ms\"}"
+		want := "test: INFO: msg {1=2 xxx=\"0ms\" yyy=\"2ms\" zzz=\"4ms\"}"
 		if out != want {
 			t.Errorf("\nout:  %q\nwant: %q\n", out, want)
 		}

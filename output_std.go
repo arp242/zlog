@@ -66,7 +66,16 @@ func format(l Log) string {
 		data := make([]string, len(l.Data))
 		i := 0
 		for k, v := range l.Data {
-			data[i] = fmt.Sprintf("%s=%q", k, v)
+			switch v.(type) {
+			case int, int8, int16, int32, int64, uint, uint8, uint16, uint64:
+				data[i] = fmt.Sprintf("%s=%d", k, v)
+			case float32, float64:
+				data[i] = fmt.Sprintf("%s=%f", k, v)
+			case string, []byte, []rune:
+				data[i] = fmt.Sprintf("%s=%s", k, v)
+			default:
+				data[i] = fmt.Sprintf("%s=%s", k, v)
+			}
 			i++
 		}
 
