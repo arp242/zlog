@@ -256,6 +256,7 @@ func (l Log) FieldsRequest(r *http.Request) Log {
 		"http_method": r.Method,
 		"http_url":    r.URL.String(),
 		"http_form":   r.Form.Encode(),
+		"http_host":   r.Host,
 	})
 }
 
