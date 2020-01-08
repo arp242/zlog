@@ -16,13 +16,13 @@ import (
 	"zgo.at/utils/errorutil"
 )
 
-// ConfigT is the configuration struct.
-type ConfigT struct {
+// LogConfig is the configuration struct.
+type LogConfig struct {
 	// Outputs for a Log entry.
 	//
 	// The default is to print to stderr for errors, and stdout for everything
-	// else. Generally you want to keep this as a backup and add other
-	// additional outputs, for example:
+	// else. Generally you want to keep this as a backup and add additional
+	// outputs, instead of replacing this. For example:
 	//
 	//    zlog.Config.Outputs = append(zlog.Config.Outputs, func(l Log) {
 	//        if l.Level != LevelErr { // Only process errors.
@@ -42,18 +42,27 @@ type ConfigT struct {
 	Outputs []OutputFunc
 
 	// Filter stack traces, only used if the error is a github.com/pkg/errors
-	// with a stack trace.
-	// Useful to filter out HTTP middleware and other useless stuff.
+	// with a stack trace. Useful to filter out HTTP middleware and other
+	// useless stuff.
+	//
+	// Example:
+	//
+	//   zlog.Config.StackFilter = errorutil.FilterPattern(
+	// 	     errorutil.FilterTraceInclude, "example.com/import")
 	StackFilter *errorutil.Patterns
 
-	// Global debug modules; always print debug information for these.
-	//
-	// Debug information will be printed for all modules if "all" is in the
-	// list.
+	// Always print debug information for these modules. Debug will be enabled
+	// for all modules with the special word "all".
 	Debug []string
 
 	// Format function used by the default stdout/stderr output. This takes a
 	// Log entry and formats it for output.
+	//
+	// TODO: the boundary between "outputs" and "zlog internals" are kinda leaky
+	// here; it's used for Trace() logs now. Should think about refactoring
+	// re-doing this in another way.
+	//
+	// Maybe add type OutputConfig{ .. } for this (and FmtTime)?
 	Format func(Log) string
 
 	// Time/date format as accepted by time.Format(); used in the default
@@ -67,7 +76,7 @@ type ConfigT struct {
 }
 
 // SetDebug sets the Debug field from a comma-separated list of module names.
-func (c *ConfigT) SetDebug(d string) {
+func (c *LogConfig) SetDebug(d string) {
 	d = strings.TrimSpace(d)
 	if d == "" {
 		c.Debug = nil
@@ -75,7 +84,7 @@ func (c *ConfigT) SetDebug(d string) {
 	c.Debug = strings.Split(d, ",")
 }
 
-func (c ConfigT) RunOutputs(l Log) {
+func (c LogConfig) RunOutputs(l Log) {
 	for _, o := range c.Outputs {
 		o(l)
 	}
@@ -85,10 +94,10 @@ func (c ConfigT) RunOutputs(l Log) {
 type OutputFunc func(Log)
 
 // Config for this package.
-var Config ConfigT
+var Config LogConfig
 
 func init() {
-	Config = ConfigT{
+	Config = LogConfig{
 		FmtTime: "15:04:05 ",
 		Format:  format,
 		Outputs: []OutputFunc{output},
@@ -145,7 +154,10 @@ func FieldsRequest(r *http.Request) Log { return Log{}.FieldsRequest(r) }
 func FieldsLocation() Log { return Log{}.FieldsLocation() }
 
 // ResetTrace removes all trace logs added with Trace() and Tracef().
-func (l Log) ResetTrace() { l.Traces = []string{} }
+func (l Log) ResetTrace() Log {
+	l.Traces = nil
+	return l
+}
 
 // Context adds a context to the Log entry.
 //
@@ -366,9 +378,14 @@ func Recover(cb ...func(Log) Log) {
 	}
 }
 
-// ProfileCPU writes a memory if the path is non-empty.
+// ProfileCPU writes a memory if the path is non-empty. This should be called on
+// start and the returned function on end (e.g. defer):
 //
-// This should be called on start and the returned function on end (e.g. defer).
+//   func main() {
+//       defer zlog.ProfileCPU("cpu.prof")()
+//
+//       // ..work..
+//   }
 func ProfileCPU(path string) func() {
 	if path == "" {
 		return func() {}
@@ -383,7 +400,13 @@ func ProfileCPU(path string) func() {
 }
 
 // ProfileHeap writes a memory if the path is non-empty. This is usually called
-// just before the program exits.
+// just before the program exits:
+//
+//   func main() {
+//       // ..work..
+//
+//       zlog.ProfileHeap("mem.prof")
+//   }
 func ProfileHeap(path string) {
 	if path == "" {
 		return
