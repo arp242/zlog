@@ -27,7 +27,7 @@ zlog.Error(errors.New("oh noes"))  // 15:55:17 ERROR: oh noes
                                    //          runtime.goexit
                                    //                  /usr/lib/go/src/runtime/asm_amd64.s:1357
 zlog.Errorf("foo %d", 1)           // 15:55:17 ERROR: foo 1
-                                   // [..stack trace omitted..]
+                                   //          ..stack trace omitted..
 ```
 
 This does what you expect: output a message to stdout or stderr. The Error()
@@ -69,6 +69,7 @@ log := zlog.Module("foo")
 log = log.Trace("useful info")
 log.Error(errors.New("oh noes"))   // 19:44:26 foo: TRACE: useful info
                                    // 19:44:26 foo: ERROR: oh noes
+                                   //          ..stack trace omitted..
 log = log.ResetTrace()             // Remove all traces.
 ```
 

@@ -86,7 +86,6 @@ func format(l Log) string {
 		b.WriteString("}")
 	}
 
-	// TODO: also support new error interface in Go 1.13
 	if l.Level == LevelErr {
 		if l.Err == nil {
 			l.Err = errors.WithStack(errors.New(""))
