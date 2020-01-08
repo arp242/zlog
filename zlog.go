@@ -47,6 +47,9 @@ type ConfigT struct {
 	StackFilter *errorutil.Patterns
 
 	// Global debug modules; always print debug information for these.
+	//
+	// Debug information will be printed for all modules if "all" is in the
+	// list.
 	Debug []string
 
 	// Format function used by the default stdout/stderr output. This takes a
@@ -61,6 +64,15 @@ type ConfigT struct {
 	//
 	// This is used in the standard format() function, not not elsewhere.
 	FmtTime string
+}
+
+// SetDebug sets the Debug field from a comma-separated list of module names.
+func (c *ConfigT) SetDebug(d string) {
+	d = strings.TrimSpace(d)
+	if d == "" {
+		c.Debug = nil
+	}
+	c.Debug = strings.Split(d, ",")
 }
 
 func (c ConfigT) RunOutputs(l Log) {
@@ -271,13 +283,13 @@ func (l Log) FieldsLocation() Log {
 func (l Log) hasDebug() bool {
 	for _, m := range l.Modules {
 		for _, d := range Config.Debug {
-			if d == m {
+			if d == "all" || d == m {
 				return true
 			}
 		}
 
 		for _, d := range l.DebugModules {
-			if d == m {
+			if d == "all" || d == m {
 				return true
 			}
 		}

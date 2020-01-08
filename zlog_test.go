@@ -66,6 +66,13 @@ func TestLog(t *testing.T) {
 			r, _ := http.NewRequest("PUT", "/path?k=v&a=b", nil)
 			FieldsRequest(r).Error(errors.New("w00t"))
 		}, "ERROR: w00t {http_form=\"\" http_host=\"\" http_method=\"PUT\" http_url=\"/path?k=v&a=b\"}\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
+
+		{func() {
+			Config.SetDebug("all")
+			Module("c").Debug("xxx")
+			Config.SetDebug("")
+			Module("c").Debug("xxx")
+		}, "c: DEBUG: xxx"},
 	}
 
 	for i, tt := range tests {
