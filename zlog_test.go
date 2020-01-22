@@ -59,13 +59,14 @@ func TestLog(t *testing.T) {
 
 		{func() {
 			r, _ := http.NewRequest("PUT", "/path?k=v&a=b", nil)
+			r.Header.Set("User-Agent", "x")
 			//Request(r).Error(errors.New("w00t"))
 			FieldsRequest(r).Print("w00t")
-		}, "INFO: w00t {http_form=\"\" http_host=\"\" http_method=\"PUT\" http_url=\"/path?k=v&a=b\"}"},
+		}, "INFO: w00t {http_form=\"\" http_host=\"\" http_method=\"PUT\" http_url=\"/path?k=v&a=b\" http_user_agent=\"x\"}"},
 		{func() {
 			r, _ := http.NewRequest("PUT", "/path?k=v&a=b", nil)
 			FieldsRequest(r).Error(errors.New("w00t"))
-		}, "ERROR: w00t {http_form=\"\" http_host=\"\" http_method=\"PUT\" http_url=\"/path?k=v&a=b\"}\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
+		}, "ERROR: w00t {http_form=\"\" http_host=\"\" http_method=\"PUT\" http_url=\"/path?k=v&a=b\" http_user_agent=\"\"}\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
 
 		{func() {
 			Config.SetDebug("all")
