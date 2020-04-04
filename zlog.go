@@ -12,8 +12,6 @@ import (
 	"runtime/pprof"
 	"strings"
 	"time"
-
-	"zgo.at/utils/errorutil"
 )
 
 // LogConfig is the configuration struct.
@@ -40,16 +38,6 @@ type LogConfig struct {
 	//        // .. send to external logging service ..
 	//    })
 	Outputs []OutputFunc
-
-	// Filter stack traces, only used if the error is a github.com/pkg/errors
-	// with a stack trace. Useful to filter out HTTP middleware and other
-	// useless stuff.
-	//
-	// Example:
-	//
-	//   zlog.Config.StackFilter = errorutil.FilterPattern(
-	// 	     errorutil.FilterTraceInclude, "example.com/import")
-	StackFilter *errorutil.Patterns
 
 	// Always print debug information for these modules. Debug will be enabled
 	// for all modules with the special word "all".

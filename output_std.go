@@ -5,9 +5,6 @@ import (
 	"os"
 	"sort"
 	"strings"
-
-	"github.com/pkg/errors"
-	"zgo.at/utils/errorutil"
 )
 
 var (
@@ -29,10 +26,6 @@ var (
 		LevelTrace: "TRACE: ",
 	}
 )
-
-type stackTracer interface {
-	StackTrace() errors.StackTrace
-}
 
 func format(l Log) string {
 	b := &strings.Builder{}
@@ -84,26 +77,6 @@ func format(l Log) string {
 		b.WriteString(" {")
 		b.WriteString(strings.Join(data, " "))
 		b.WriteString("}")
-	}
-
-	if l.Level == LevelErr {
-		if l.Err == nil {
-			l.Err = errors.WithStack(errors.New(""))
-		} else if _, ok := l.Err.(stackTracer); !ok {
-			l.Err = errors.WithStack(l.Err)
-		}
-
-		if Config.StackFilter != nil {
-			l.Err = errorutil.FilterTrace(l.Err, Config.StackFilter)
-		}
-
-		st := l.Err.(stackTracer)
-		trace := strings.TrimSpace(fmt.Sprintf("%+v", st.StackTrace()))
-		indent := "\t" // TODO: would prefer to align with message using spaces.
-		trace = indent + strings.Replace(trace, "\n", "\n"+indent, -1)
-		//b.WriteString(strings.Replace(fmt.Sprintf("\t%+v\n", st.StackTrace()), "\n", "\n\t", -1))
-		b.WriteString("\n")
-		b.WriteString(trace)
 	}
 
 	return b.String()

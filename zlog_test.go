@@ -2,17 +2,14 @@ package zlog
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
-	"regexp"
 	"strings"
 	"sync"
 	"testing"
 	"time"
-
-	"github.com/pkg/errors"
-	"zgo.at/utils/errorutil"
 )
 
 func TestLog(t *testing.T) {
@@ -20,25 +17,21 @@ func TestLog(t *testing.T) {
 	now = func() time.Time { return n }
 	enableColors = false
 
-	Config.StackFilter = errorutil.FilterPattern(errorutil.FilterTraceInclude, "testing")
-
-	reTrace := regexp.MustCompile(`\t/.*?/testing\.go:\d+`)
-
 	tests := []struct {
 		in   func()
 		want string
 	}{
 		// TODO: get line nr. instead of hard-coding it here.
-		{func() { FieldsLocation().Print("print") }, "INFO: print {location=\"zlog_test.go:32\"}"},
+		{func() { FieldsLocation().Print("print") }, "INFO: print {location=\"zlog_test.go:25\"}"},
 
 		{func() { Print("w00t") }, "INFO: w00t"},
 		{func() { Printf("w00t %s", "x") }, "INFO: w00t x"},
-		{func() { Error(errors.New("w00t")) }, "ERROR: w00t\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
-		{func() { Errorf("w00t %s", "x") }, "ERROR: w00t x\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
+		{func() { Error(errors.New("w00t")) }, "ERROR: w00t"},
+		{func() { Errorf("w00t %s", "x") }, "ERROR: w00t x"},
 
 		{func() { Module("test").Print("w00t") }, "test: INFO: w00t"},
 		{func() { Module("test").Module("second").Print("w00t") }, "test: second: INFO: w00t"},
-		{func() { Module("test").Error(errors.New("w00t")) }, "test: ERROR: w00t\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
+		{func() { Module("test").Error(errors.New("w00t")) }, "test: ERROR: w00t"},
 
 		{func() { Module("test").Fields(F{"k": "v"}).Print("w00t") }, "test: INFO: w00t {k=\"v\"}"},
 		{func() { Module("test").Fields(F{"k": 3}).Print("w00t") }, "test: INFO: w00t {k=3}"},
@@ -53,7 +46,7 @@ func TestLog(t *testing.T) {
 
 		{func() { Module("test").Trace("w00t") }, ""},
 		{func() { SetDebug("test").Module("test").Trace("w00t") }, "test: TRACE: w00t"},
-		{func() { Module("test").Tracef("w00t %d", 42).Errorf("oh noes") }, "test: TRACE: w00t 42\n" + n.Format(Config.FmtTime) + "test: ERROR: oh noes\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
+		{func() { Module("test").Tracef("w00t %d", 42).Errorf("oh noes") }, "test: TRACE: w00t 42\n" + n.Format(Config.FmtTime) + "test: ERROR: oh noes"},
 		{func() { Module("test").Trace("w00t").Print("print") }, "test: INFO: print"},
 		{func() { Module("test").Tracef("w00t").Print("print") }, "test: INFO: print"},
 
@@ -66,7 +59,7 @@ func TestLog(t *testing.T) {
 		{func() {
 			r, _ := http.NewRequest("PUT", "/path?k=v&a=b", nil)
 			FieldsRequest(r).Error(errors.New("w00t"))
-		}, "ERROR: w00t {http_form=\"\" http_host=\"\" http_method=\"PUT\" http_url=\"/path?k=v&a=b\" http_user_agent=\"\"}\n\ttesting.tRunner\n\t\t/fake/testing.go:42"},
+		}, "ERROR: w00t {http_form=\"\" http_host=\"\" http_method=\"PUT\" http_url=\"/path?k=v&a=b\" http_user_agent=\"\"}"},
 
 		{func() {
 			Config.SetDebug("all")
@@ -90,7 +83,6 @@ func TestLog(t *testing.T) {
 
 			tt.in()
 			out := buf.String()
-			out = reTrace.ReplaceAllString(out, "\t/fake/testing.go:42")
 
 			if tt.want != "" {
 				tt.want = n.Format(Config.FmtTime) + tt.want

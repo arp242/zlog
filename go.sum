@@ -1,5 +1,0 @@
-github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
-github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
-zgo.at/utils v0.0.0-20200316145006-980e7a29f94c h1:7+YAiBIU3WFu7WgOnZ2oCdiMxVbh3GmxY50WObwp6l4=
-zgo.at/utils v0.0.0-20200316145006-980e7a29f94c/go.mod h1:FCfRX4xxJ4K0jI86Aq/jp49Q5zGThlYwmqzgviv7Jtk=
-zgo.at/ztest v0.0.0-20200316134318-cfad86d80b41/go.mod h1:xGKONSdBgBNBcHRbi+yY9xFSre7ip8gRsQBS9QW/J2I=

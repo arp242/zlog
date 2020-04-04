@@ -20,28 +20,10 @@ Basics:
 zlog.Print("foo")                  // 15:55:17 INFO: foo
 zlog.Printf("foo %d", 1)           // 15:55:17 INFO: foo 1
 zlog.Error(errors.New("oh noes"))  // 15:55:17 ERROR: oh noes
-                                   //          main.main
-                                   //                  /home/martin/code/zlog/_example/basic.go:11
-                                   //          runtime.main
-                                   //                  /usr/lib/go/src/runtime/proc.go:203
-                                   //          runtime.goexit
-                                   //                  /usr/lib/go/src/runtime/asm_amd64.s:1357
 zlog.Errorf("foo %d", 1)           // 15:55:17 ERROR: foo 1
-                                   //          ..stack trace omitted..
 ```
 
-This does what you expect: output a message to stdout or stderr. The Error()
-functions automatically print a stack trace. You'll often want to filter that
-trace to include just frames that belong to your app:
-
-```go
-zlog.Config.StackFilter = errorutil.FilterPattern(
-    errorutil.FilterTraceInclude, "zlog/_example")
-
-zlog.Error(errors.New("oh noes"))  // 15:55:17 ERROR: oh noes
-                                   //          main.main
-                                   //                  /home/martin/code/zlog/_example/basic.go:16
-```
+This does what you expect: output a message to stdout or stderr.
 
 You can add module information and fields for extra information:
 
@@ -69,7 +51,6 @@ log := zlog.Module("foo")
 log = log.Trace("useful info")
 log.Error(errors.New("oh noes"))   // 19:44:26 foo: TRACE: useful info
                                    // 19:44:26 foo: ERROR: oh noes
-                                   //          ..stack trace omitted..
 log = log.ResetTrace()             // Remove all traces.
 ```
 
