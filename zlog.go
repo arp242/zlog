@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"runtime/debug"
 	"runtime/pprof"
 	"strings"
 	"time"
@@ -357,6 +358,8 @@ func Recover(cb ...func(Log) Log) {
 	if len(cb) > 0 {
 		l = cb[0](l)
 	}
+
+	err = fmt.Errorf("%s\n%s", err, debug.Stack())
 
 	l.Error(err)
 
