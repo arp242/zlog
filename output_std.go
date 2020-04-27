@@ -27,6 +27,9 @@ var (
 	}
 )
 
+// JSON strings aren't quoted in the output.
+type JSON string
+
 func format(l Log) string {
 	b := &strings.Builder{}
 
@@ -64,6 +67,8 @@ func format(l Log) string {
 				data[i] = fmt.Sprintf("%s=%d", k, v)
 			case float32, float64:
 				data[i] = fmt.Sprintf("%s=%f", k, v)
+			case JSON:
+				data[i] = fmt.Sprintf("%s=%s", k, v)
 			case string, []byte, []rune:
 				data[i] = fmt.Sprintf("%s=%q", k, v)
 			default:
