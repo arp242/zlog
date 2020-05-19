@@ -318,7 +318,7 @@ func (l Log) Since(msg string) Log {
 	}
 	l.sinceLog[msg] = fmt.Sprintf("%dms", s)
 	if l.hasDebug() {
-		fmt.Fprintf(stderr, "  %s %5dms  %s\n", strings.Join(l.Modules, ":"), s, msg)
+		fmt.Fprintf(stderr, "  %-16s %5dms  %s\n", strings.Join(l.Modules, ":"), s, msg)
 	}
 
 	l.since = n
