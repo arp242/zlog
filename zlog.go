@@ -337,7 +337,7 @@ func (l Log) Since(msg string) Log {
 // The first callback will be called before the Error() call, and can be used to
 // modify the Log instance, for example to add fields:
 //
-//   defer zlog.Recover(func(l Log) Log {
+//   defer zlog.Recover(func(l zlog.Log) zlog.Log {
 //       return l.Fields(zlog.F{"id": id})
 //   })
 //

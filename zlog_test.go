@@ -100,21 +100,21 @@ func TestSince(t *testing.T) {
 		want string
 	}{
 		{func() { Module("test").Since("xxx") }, ""},
-		{func() { SetDebug("test").Module("test").Since("xxx") }, "  test     0ms  xxx\n"},
+		{func() { SetDebug("test").Module("test").Since("xxx") }, "  test                 0ms  xxx\n"},
 		{func() {
 			l := SetDebug("test").Module("test").Since("xxx")
 			time.Sleep(2 * time.Millisecond)
 			l.Since("yyy")
 			time.Sleep(4 * time.Millisecond)
 			l.Since("zzz")
-		}, "  test     0ms  xxx\n  test     2ms  yyy\n  test     6ms  zzz\n"},
+		}, "  test                 0ms  xxx\n  test                 2ms  yyy\n  test                 6ms  zzz\n"},
 		{func() {
 			l := SetDebug("test").Module("test").Since("xxx")
 			time.Sleep(2 * time.Millisecond)
 			l = l.Since("yyy")
 			time.Sleep(4 * time.Millisecond)
 			l.Since("zzz")
-		}, "  test     0ms  xxx\n  test     2ms  yyy\n  test     4ms  zzz\n"},
+		}, "  test                 0ms  xxx\n  test                 2ms  yyy\n  test                 4ms  zzz\n"},
 	}
 
 	for i, tt := range tests {
