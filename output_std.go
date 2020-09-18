@@ -72,7 +72,7 @@ func format(l Log) string {
 			case string, []byte, []rune:
 				data[i] = fmt.Sprintf("%s=%q", k, v)
 			default:
-				data[i] = fmt.Sprintf("%s=%s", k, v)
+				data[i] = fmt.Sprintf("%s=%v", k, v)
 			}
 			i++
 		}

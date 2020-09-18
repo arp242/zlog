@@ -94,6 +94,41 @@ func TestLog(t *testing.T) {
 	}
 }
 
+func TestFields(t *testing.T) {
+	n := time.Now()
+	now = func() time.Time { return n }
+	enableColors = false
+
+	var (
+		buf  bytes.Buffer
+		lock sync.Mutex
+	)
+	Config.Outputs = []OutputFunc{
+		func(l Log) {
+			lock.Lock()
+			buf.WriteString(Config.Format(l))
+			lock.Unlock()
+		},
+	}
+
+	//o := 1
+	Fields(F{
+		"x": struct {
+			i int64
+			//p *int // TODO: displays ptr address
+		}{123}, //&o},
+		"y": map[string]string{"X": "Y"},
+		"z": 690123,
+		"b": []byte("aa"),
+	}).Print("p")
+
+	out := buf.String()
+	want := n.Format(Config.FmtTime) + `INFO: p {b="aa" x={123} y=map[X:Y] z=690123}`
+	if out != want {
+		t.Errorf("\nout:  %q\nwant: %q", out, want)
+	}
+}
+
 func TestSince(t *testing.T) {
 	tests := []struct {
 		in   func()
