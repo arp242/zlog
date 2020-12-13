@@ -71,6 +71,8 @@ func format(l Log) string {
 				data[i] = fmt.Sprintf("%s=%s", k, v)
 			case string, []byte, []rune:
 				data[i] = fmt.Sprintf("%s=%q", k, v)
+			case bool:
+				data[i] = fmt.Sprintf("%s=%t", k, v)
 			default:
 				data[i] = fmt.Sprintf("%s=%v", k, v)
 			}
