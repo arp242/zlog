@@ -5,10 +5,12 @@ import (
 	"os"
 	"sort"
 	"strings"
+
+	"zgo.at/zlog/internal/isatty"
 )
 
 var (
-	enableColors = true
+	enableColors = isatty.IsTerminal(os.Stdout.Fd())
 
 	// Fill two spaces with a background colour. Don't colourize the full text, as
 	// this is more readable across different colour scheme choices.
