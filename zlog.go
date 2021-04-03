@@ -12,11 +12,14 @@ import (
 	"runtime/debug"
 	"runtime/pprof"
 	"strings"
+	"sync"
 	"time"
 )
 
 // LogConfig is the configuration struct.
 type LogConfig struct {
+	mu *sync.Mutex
+
 	// Outputs for a Log entry.
 	//
 	// The default is to print to stderr for errors, and stdout for everything
@@ -66,6 +69,8 @@ type LogConfig struct {
 
 // SetDebug sets the Debug field from a comma-separated list of module names.
 func (c *LogConfig) SetDebug(d string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	d = strings.TrimSpace(d)
 	if d == "" {
 		c.Debug = nil
@@ -73,7 +78,27 @@ func (c *LogConfig) SetDebug(d string) {
 	c.Debug = strings.Split(d, ",")
 }
 
+func (c *LogConfig) SetFmtTime(f string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.FmtTime = f
+}
+
+func (c *LogConfig) SetOutputs(f ...OutputFunc) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.Outputs = f
+}
+
+func (c *LogConfig) AppendOutputs(f ...OutputFunc) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.Outputs = append(c.Outputs, f...)
+}
+
 func (c LogConfig) RunOutputs(l Log) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	for _, o := range c.Outputs {
 		o(l)
 	}
@@ -87,6 +112,7 @@ var Config LogConfig
 
 func init() {
 	Config = LogConfig{
+		mu:      new(sync.Mutex),
 		FmtTime: "15:04:05 ",
 		Format:  format,
 		Outputs: []OutputFunc{output},
