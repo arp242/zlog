@@ -52,14 +52,22 @@ func TestLog(t *testing.T) {
 
 		{func() {
 			r, _ := http.NewRequest("PUT", "/path?k=v&a=b", nil)
-			r.Header.Set("User-Agent", "x")
-			//Request(r).Error(errors.New("w00t"))
-			FieldsRequest(r).Print("w00t")
-		}, "INFO: w00t {http_form=\"\" http_host=\"\" http_method=\"PUT\" http_url=\"/path?k=v&a=b\" http_user_agent=\"x\"}"},
+			FieldsRequest(r).Error(errors.New("w00t"))
+		}, `ERROR: w00t {http_form="" http_headers="" http_host="" http_method="PUT" http_url="/path?k=v&a=b"}`},
 		{func() {
 			r, _ := http.NewRequest("PUT", "/path?k=v&a=b", nil)
-			FieldsRequest(r).Error(errors.New("w00t"))
-		}, "ERROR: w00t {http_form=\"\" http_host=\"\" http_method=\"PUT\" http_url=\"/path?k=v&a=b\" http_user_agent=\"\"}"},
+			r.Header.Set("User-Agent", "x")
+			FieldsRequest(r).Print("w00t")
+		}, `INFO: w00t {http_form="" http_headers="User-Agent: x" http_host="" http_method="PUT" http_url="/path?k=v&a=b"}`},
+		{func() {
+			r, _ := http.NewRequest("PUT", "/path?k=v&a=b", nil)
+			r.Header.Set("User-Agent", "x")
+			r.Header.Set("Host", "foo.com")
+			r.Header.Set("Other-Head", `"quoted"`)
+			r.Header.Set("Multi", `1`)
+			r.Header.Set("Multi", `2`)
+			FieldsRequest(r).Print("w00t")
+		}, `INFO: w00t {http_form="" http_headers="Host: foo.com · Multi: 2 · Other-Head: \"quoted\" · User-Agent: x" http_host="" http_method="PUT" http_url="/path?k=v&a=b"}`},
 
 		{func() {
 			Config.SetDebug("all")
@@ -88,7 +96,7 @@ func TestLog(t *testing.T) {
 				tt.want = n.Format(Config.FmtTime) + tt.want
 			}
 			if out != tt.want {
-				t.Errorf("\nout:  %q\nwant: %q\n", out, tt.want)
+				t.Errorf("\nout:  %s\nwant: %s\n", out, tt.want)
 			}
 		})
 	}

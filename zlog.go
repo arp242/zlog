@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"runtime/debug"
 	"runtime/pprof"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -291,12 +292,21 @@ func (l Log) FieldsRequest(r *http.Request) Log {
 		panic("zlog.FieldsRequest: *http.Request is nil")
 	}
 
+	// Create a sorted list of headers for consistency.
+	h := make([]string, 0, len(r.Header))
+	for k, v := range r.Header {
+		for _, v2 := range v {
+			h = append(h, k+": "+v2)
+		}
+	}
+	sort.Strings(h)
+
 	return l.Fields(F{
-		"http_method":     r.Method,
-		"http_url":        r.URL.String(),
-		"http_form":       r.Form.Encode(),
-		"http_host":       r.Host,
-		"http_user_agent": r.UserAgent(),
+		"http_method":  r.Method,
+		"http_url":     r.URL.String(),
+		"http_form":    r.Form.Encode(),
+		"http_host":    r.Host,
+		"http_headers": strings.Join(h, " · "),
 	})
 }
 
