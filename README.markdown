@@ -1,10 +1,5 @@
-[![This project is considered stable](https://img.shields.io/badge/Status-stable-green.svg)](https://arp242.net/status/stable)
-[![Build Status](https://travis-ci.org/zgoat/zlog.svg?branch=master)](https://travis-ci.org/zgoat/zlog)
-[![codecov](https://codecov.io/gh/zgoat/zlog/branch/master/graph/badge.svg)](https://codecov.io/gh/zgoat/zlog)
-[![GoDoc](https://godoc.org/zgo.at/zlog?status.svg)](https://pkg.go.dev/zgo.at/zlog)
-
 Go logging library. Canonical import path: `zgo.at/zlog`. You will need Go 1.11
-or newer.
+or newer. API docs: https://godocs.io/zgo.at/zlog
 
 The main goal is to offer a friendly and ergonomic API. Getting the maximum
 possible amount of performance or zero-allocations are not goals, although
@@ -87,7 +82,7 @@ go func() {
 }()
 ```
 
-See [godoc](https://pkg.go.dev/zgo.at/zlog) for the full reference.
+See https://godocs.io/zgo.at/zlog for the full reference.
 
 
 ### Configuration
@@ -98,5 +93,4 @@ initialisation of your app.
 It's not possible to configure individual logger instances, as it's rarely
 needed (but I might change my mind if someone presents a good use-case).
 
-See [LogConfig godoc](https://pkg.go.dev/zgo.at/zlog?tab=doc#LogConfig) for
-docs.
+See LogConfig godoc for docs.
