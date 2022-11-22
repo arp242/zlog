@@ -294,20 +294,22 @@ func (l Log) FieldsRequest(r *http.Request) Log {
 
 	// Create a sorted list of headers for consistency.
 	h := make([]string, 0, len(r.Header))
-	for k, v := range r.Header {
-		for _, v2 := range v {
-			h = append(h, k+": "+v2)
-		}
+	for k, _ := range r.Header {
+		h = append(h, k)
 	}
 	sort.Strings(h)
 
-	return l.Fields(F{
-		"http_method":  r.Method,
-		"http_url":     r.URL.String(),
-		"http_form":    r.Form.Encode(),
-		"http_host":    r.Host,
-		"http_headers": strings.Join(h, " · "),
-	})
+	f := F{
+		"http_method": r.Method,
+		"http_url":    r.URL.String(),
+		"http_form":   r.Form.Encode(),
+		"http_host":   r.Host,
+	}
+	for _, k := range h {
+		f["http."+k] = r.Header.Get(k)
+	}
+
+	return l.Fields(f)
 }
 
 // FieldsLocation records the caller location.
@@ -343,6 +345,17 @@ var stderr io.Writer = os.Stderr // So we can swap it out in test.
 // The result will be printed to stderr if this module is in the debug list. It
 // can also be added to a Log with FieldsSince().
 func (l Log) Since(msg string) Log {
+	// TODO: no way to add disable printing to stderr; it's useful in some
+	//       cases, but not so much in others. For example if I want to add some
+	//       fields:
+	//
+	//   l.Since(w.Name()).FieldsSince().Debugf("XXX")
+	//
+	// Prints two lines:
+	//
+	//   dashboard            5ms  sizes
+	//   18:16:52 dashboard: DEBUG: XXX {sizes="5ms" url="/"}
+
 	n := time.Now()
 	if l.since.IsZero() {
 		l.since = n
@@ -365,17 +378,17 @@ func (l Log) Since(msg string) Log {
 //
 // Any panics will be recover()'d and reported with Error():
 //
-//   go func() {
-//       defer zlog.Recover()
-//       // ... do work...
-//   }()
+//	go func() {
+//	    defer zlog.Recover()
+//	    // ... do work...
+//	}()
 //
 // The first callback will be called before the Error() call, and can be used to
 // modify the Log instance, for example to add fields:
 //
-//   defer zlog.Recover(func(l zlog.Log) zlog.Log {
-//       return l.Fields(zlog.F{"id": id})
-//   })
+//	defer zlog.Recover(func(l zlog.Log) zlog.Log {
+//	    return l.Fields(zlog.F{"id": id})
+//	})
 //
 // Any other callbacks will be called after the Error() call. Modifying the Log
 // instance has no real use.
@@ -409,11 +422,11 @@ func Recover(cb ...func(Log) Log) {
 // ProfileCPU writes a memory if the path is non-empty. This should be called on
 // start and the returned function on end (e.g. defer):
 //
-//   func main() {
-//       defer zlog.ProfileCPU("cpu.prof")()
+//	func main() {
+//	    defer zlog.ProfileCPU("cpu.prof")()
 //
-//       // ..work..
-//   }
+//	    // ..work..
+//	}
 func ProfileCPU(path string) func() {
 	if path == "" {
 		return func() {}
@@ -430,11 +443,11 @@ func ProfileCPU(path string) func() {
 // ProfileHeap writes a memory if the path is non-empty. This is usually called
 // just before the program exits:
 //
-//   func main() {
-//       // ..work..
+//	func main() {
+//	    // ..work..
 //
-//       zlog.ProfileHeap("mem.prof")
-//   }
+//	    zlog.ProfileHeap("mem.prof")
+//	}
 func ProfileHeap(path string) {
 	if path == "" {
 		return

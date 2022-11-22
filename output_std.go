@@ -61,31 +61,44 @@ func format(l Log) string {
 	}
 
 	if len(l.Data) > 0 {
+		width := 0
+		for k := range l.Data {
+			if l := len(k); l > width {
+				width = l
+			}
+		}
+
 		data := make([]string, len(l.Data))
 		i := 0
 		for k, v := range l.Data {
+			vfmt := "%v"
 			switch v.(type) {
 			case int, int8, int16, int32, int64, uint, uint8, uint16, uint64:
-				data[i] = fmt.Sprintf("%s=%d", k, v)
+				vfmt = "%d"
 			case float32, float64:
-				data[i] = fmt.Sprintf("%s=%f", k, v)
+				vfmt = "%f"
 			case JSON:
-				data[i] = fmt.Sprintf("%s=%s", k, v)
+				vfmt = "%s"
 			case string, []byte, []rune:
-				data[i] = fmt.Sprintf("%s=%q", k, v)
+				vfmt = "%q"
 			case bool:
-				data[i] = fmt.Sprintf("%s=%t", k, v)
+				vfmt = "%t"
 			default:
-				data[i] = fmt.Sprintf("%s=%v", k, v)
+				data[i] = fmt.Sprintf("%s = %v", k, v)
 			}
+
+			pad := strings.Repeat(" ", width-len(k))
+			data[i] = fmt.Sprintf("%s%s = "+vfmt, k, pad, v)
+
 			i++
 		}
 
 		sort.Strings(data) // Map order is random, so be predictable.
 
-		b.WriteString(" {")
-		b.WriteString(strings.Join(data, " "))
-		b.WriteString("}")
+		//b.WriteString(" {")
+		b.WriteString("\n\t")
+		b.WriteString(strings.Join(data, "\n\t"))
+		//b.WriteString("}")
 	}
 
 	return b.String()
